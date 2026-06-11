@@ -56,9 +56,9 @@ def find_safe_move(board, player_color):
     return None, None
 
 def board_to_html_grid(board, player_color):
-    # Map Unicode pieces
+    # Map Unicode pieces - use solid pieces for both colors styled via CSS for best contrast
     piece_symbols = {
-        'P': '♙', 'N': '♘', 'B': '♗', 'R': '♖', 'Q': '♕', 'K': '♔',
+        'P': '♟', 'N': '♞', 'B': '♝', 'R': '♜', 'Q': '♛', 'K': '♚',
         'p': '♟', 'n': '♞', 'b': '♝', 'r': '♜', 'q': '♛', 'k': '♚'
     }
     
