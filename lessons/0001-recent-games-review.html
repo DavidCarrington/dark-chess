@@ -5955,7 +5955,12 @@
             
             const width = 800;
             const height = 220;
-            const padding = 40;
+            
+            // Adjust padding to make room for larger Y-axis labels
+            const paddingLeft = 60;
+            const paddingRight = 40;
+            const paddingTop = 30;
+            const paddingBottom = 30;
             
             // Map values
             let minRating = Math.min(...ratingHistory) - 10;
@@ -5965,11 +5970,11 @@
             }
             
             const pointsCount = ratingHistory.length;
-            const stepX = (width - padding * 2) / Math.max(1, pointsCount - 1);
+            const stepX = (width - paddingLeft - paddingRight) / Math.max(1, pointsCount - 1);
             
             function getY(rating) {
                 const ratio = (rating - minRating) / (maxRating - minRating);
-                return height - padding - ratio * (height - padding * 2);
+                return height - paddingBottom - ratio * (height - paddingTop - paddingBottom);
             }
             
             // Generate path
@@ -5977,7 +5982,7 @@
             let dotsHTML = "";
             
             for (let i = 0; i < pointsCount; i++) {
-                const x = padding + i * stepX;
+                const x = paddingLeft + i * stepX;
                 const y = getY(ratingHistory[i]);
                 
                 if (i === 0) {
@@ -6006,19 +6011,19 @@
                 </defs>
                 
                 <!-- Floor baseline rating grid -->
-                <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" 
+                <line x1="${paddingLeft}" y1="${height - paddingBottom}" x2="${width - paddingRight}" y2="${height - paddingBottom}" 
                       stroke="rgba(255,255,255,0.1)" stroke-width="1" />
-                <text x="${padding - 30}" y="${height - padding + 4}" fill="#94a3b8" font-size="12" font-family="Outfit">${minRating}</text>
+                <text x="${paddingLeft - 12}" y="${height - paddingBottom + 6}" fill="#94a3b8" font-size="18" font-family="Outfit" text-anchor="end">${minRating}</text>
                 
                 <!-- Current rating grid -->
-                <line x1="${padding}" y1="${getY(ratingHistory[pointsCount - 1])}" x2="${width - padding}" y2="${getY(ratingHistory[pointsCount - 1])}" 
+                <line x1="${paddingLeft}" y1="${getY(ratingHistory[pointsCount - 1])}" x2="${width - paddingRight}" y2="${getY(ratingHistory[pointsCount - 1])}" 
                       stroke="rgba(167, 139, 250, 0.4)" stroke-dasharray="4" stroke-width="1" />
-                <text x="${padding - 38}" y="${getY(ratingHistory[pointsCount - 1]) + 4}" fill="#a78bfa" font-weight="700" font-size="12" font-family="Outfit">${ratingHistory[pointsCount - 1]}</text>
+                <text x="${paddingLeft - 12}" y="${getY(ratingHistory[pointsCount - 1]) + 6}" fill="#a78bfa" font-weight="700" font-size="18" font-family="Outfit" text-anchor="end">${ratingHistory[pointsCount - 1]}</text>
                 
                 <!-- Area fill -->
-                <path d="${d} L ${padding + (pointsCount-1)*stepX} ${height - padding} L ${padding} ${height - padding} Z" 
+                <path d="${d} L ${paddingLeft + (pointsCount-1)*stepX} ${height - paddingBottom} L ${paddingLeft} ${height - paddingBottom} Z" 
                       fill="url(#area-grad)" />
-                      
+                
                 <!-- Glowing rating line -->
                 <path d="${d}" fill="none" stroke="url(#line-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
                 
