@@ -117,6 +117,11 @@ def main():
             
     new_matches_count = max(0, total_games_stored - prev_total)
     
+    force_regenerate = "--force" in sys.argv or "force" in sys.argv
+    if new_matches_count == 0 and not force_regenerate:
+        print("No new games found since last analysis. Skipping lesson generation. (Use --force to force regeneration)")
+        sys.exit(0)
+    
     # Save current total
     with open(last_count_path, "w") as lf:
         lf.write(str(total_games_stored))
@@ -199,9 +204,16 @@ def main():
                     if resolved_net_change > -2:
                         continue # It was a planned sacrifice or trade! Not a blunder.
                 blunder_move = moves[player_move_idx]
+                opponent_move = moves[opponent_move_idx]
                 
-                piece_type = board_before.piece_at(blunder_move.from_square).piece_type if board_before.piece_at(blunder_move.from_square) else chess.PAWN
-                piece_name = chess.piece_name(piece_type).capitalize()
+                board_after_blunder = board_before.copy()
+                board_after_blunder.push(blunder_move)
+                captured_piece = board_after_blunder.piece_at(opponent_move.to_square)
+                if captured_piece:
+                    piece_lost_type = captured_piece.piece_type
+                else:
+                    piece_lost_type = board_before.piece_at(blunder_move.from_square).piece_type if board_before.piece_at(blunder_move.from_square) else chess.PAWN
+                piece_name = chess.piece_name(piece_lost_type).capitalize()
                 
                 if net_change <= -7: queen_blunders += 1
                 elif net_change <= -4: rook_blunders += 1
@@ -235,6 +247,12 @@ def main():
                     description = "In this position, you made a capture that allowed a quick counter-attack and lost material. Look for a safer developing move instead!"
                 
                 opponent_move = moves[opponent_move_idx]
+                is_promo = opponent_move.promotion is not None
+                if is_promo:
+                    promo_piece = chess.piece_name(opponent_move.promotion).capitalize()
+                    blunder_feedback = f"❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play {move_sans[opponent_move_idx]} and promote to a {promo_piece}! Look for a safe defense instead."
+                else:
+                    blunder_feedback = f"❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play {move_sans[opponent_move_idx]} and win your {piece_name}! Look for a safe defense instead."
                 
                 blunder_details.append({
                     "game_num": g_idx,
@@ -260,19 +278,70 @@ def main():
                     "fen_before": board_before.fen(),
                     "html_board": board_to_html_grid(board_before, player_color),
                     "piece_blundered": piece_name,
+                    "blunder_feedback": blunder_feedback,
                     "value_lost": abs(net_change)
                 })
 
     print(f"Analysis complete. Found {len(blunder_details)} total material challenges in these 20 games.")
     
-    puzzles = [b for b in blunder_details if b["safe_move"] != "None"]
-    puzzles = sorted(puzzles, key=lambda x: x["value_lost"], reverse=True)[:4]
+    # We will define puzzles dynamically after determining the lesson number below
     
     lessons_dir = os.path.join(os.path.dirname(script_dir), "lessons")
     if not os.path.exists(lessons_dir):
         os.makedirs(lessons_dir)
         
-    html_file_path = os.path.join(lessons_dir, "0002-recent-games-review.html")
+    # Dynamically find the highest numbered lesson in the lessons directory
+    import glob
+    import re
+    files = glob.glob(os.path.join(lessons_dir, "*.html"))
+    max_num = 1  # Preserve Lesson 1 as static
+    for f in files:
+        basename = os.path.basename(f)
+        match = re.match(r"^(\d+)", basename)
+        if match:
+            num = int(match.group(1))
+            if num > max_num:
+                max_num = num
+                
+    if new_matches_count > 0:
+        # Create a new lesson file
+        lesson_num = max_num + 1
+    else:
+        # Overwrite the latest lesson (or create Lesson 2 if only Lesson 1 exists)
+        lesson_num = max(2, max_num)
+        
+    filename = f"{lesson_num:04d}-recent-games-review.html"
+    html_file_path = os.path.join(lessons_dir, filename)
+    
+    used_puzzles_path = os.path.join(script_dir, "used_puzzles.txt")
+    used_puzzles = {} # map of identifier -> lesson_num
+    if os.path.exists(used_puzzles_path):
+        try:
+            with open(used_puzzles_path, "r", encoding="utf-8") as uf:
+                for line in uf:
+                    line_str = line.strip()
+                    if line_str and "_" in line_str:
+                        parts = line_str.split("_", 1)
+                        if len(parts) == 2:
+                            l_num = int(parts[0])
+                            p_id = parts[1]
+                            used_puzzles[p_id] = l_num
+        except Exception as e:
+            print(f"Warning: could not read used_puzzles.txt: {e}")
+
+    puzzles = []
+    for b in blunder_details:
+        if b["safe_move"] == "None":
+            continue
+        p_id = f"{b['url']}_{b['blunder_move']}"
+        # Filter out if already used in a previous lesson
+        if p_id in used_puzzles:
+            # If we are overwriting the latest lesson, allow reusing puzzles from that same lesson
+            if new_matches_count > 0 or used_puzzles[p_id] < lesson_num:
+                continue
+        puzzles.append(b)
+
+    puzzles = sorted(puzzles, key=lambda x: x["value_lost"], reverse=True)[:4]
     
     import random
     puzzle_cards_html = []
@@ -285,7 +354,7 @@ def main():
                 "to": p['blunder_to'],
                 "refutation_from": p.get('opponent_from', ''),
                 "refutation_to": p.get('opponent_to', ''),
-                "feedback": f"❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play {p['opponent_move']} and win your {p['piece_blundered']}! Look for a safe defense instead."
+                "feedback": p['blunder_feedback']
             },
             {
                 "label": p['safe_move'], 
@@ -334,7 +403,7 @@ def main():
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    <p>What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move.</p>
                     
                     <div class="quiz-container">
 {quiz_options_html}
@@ -354,7 +423,7 @@ def main():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson 2: Personalized Game Review & Progress Dashboard</title>
+    <title>Lesson {lesson_num}: Personalized Game Review & Progress Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {{
@@ -1032,6 +1101,35 @@ def main():
 
     with open(html_file_path, "w", encoding="utf-8") as f_out:
         f_out.write(html_content)
+        
+    # Clean up entries for current lesson or greater to avoid duplicates, then write new used puzzles
+    lines_to_keep = []
+    if os.path.exists(used_puzzles_path):
+        try:
+            with open(used_puzzles_path, "r", encoding="utf-8") as uf:
+                for line in uf:
+                    line_str = line.strip()
+                    if line_str and "_" in line_str:
+                        parts = line_str.split("_", 1)
+                        if len(parts) == 2:
+                            try:
+                                l_num = int(parts[0])
+                                if l_num < lesson_num:
+                                    lines_to_keep.append(line_str)
+                            except:
+                                pass
+        except:
+            pass
+            
+    try:
+        with open(used_puzzles_path, "w", encoding="utf-8") as uf:
+            for line_str in lines_to_keep:
+                uf.write(line_str + "\n")
+            for p in puzzles:
+                p_id = f"{p['url']}_{p['blunder_move']}"
+                uf.write(f"{lesson_num:04d}_{p_id}\n")
+    except Exception as e:
+        print(f"Warning: could not write to used_puzzles.txt: {e}")
         
     print(f"\nSuccessfully generated personalized lesson: {html_file_path}")
 

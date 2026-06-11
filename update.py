@@ -14,6 +14,12 @@ def run_script(script_name, args=[]):
 
 def main():
     username = sys.argv[1] if len(sys.argv) > 1 else "darkkkkkkk0"
+    extra_args = sys.argv[2:] if len(sys.argv) > 2 else []
+    
+    # Check if the first argument itself is a flag (e.g. force) rather than a username
+    if username.startswith("-") or username == "force":
+        extra_args = [username] + extra_args
+        username = "darkkkkkkk0"
     
     print("=" * 60)
     print("STARTING CHESS GAME FETCH & BLUNDER ANALYSIS LOOP")
@@ -24,7 +30,7 @@ def main():
         sys.exit(1)
         
     print("\n[STEP 2] Running blunder scan on last 20 games...")
-    if not run_script("analyze_recent_games.py", [username]):
+    if not run_script("analyze_recent_games.py", [username] + extra_args):
         sys.exit(1)
         
     print("\n[STEP 3] Rebuilding the Dashboard Index...")

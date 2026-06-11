@@ -510,32 +510,32 @@
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    <p>What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move.</p>
                     
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 1, 'c4', 'b5', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 1, 'h5', 'g4', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p1-o1" style="flex: 1;"
-                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Nxb5 and win your Bishop! Look for a safe defense instead."
-                                 onclick="checkPuzzle(1, 'blunder', 1, 'c4', 'b5', 'd4', 'b5')">
-                                A) Bb5+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 1, 'h5', 'g4', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p1-o2" style="flex: 1;"
                                  data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
-                                 onclick="checkPuzzle(1, 'correct', 2, 'h5', 'g4', '', '')">
-                                B) Qg4+
+                                 onclick="checkPuzzle(1, 'correct', 1, 'h5', 'g4', '', '')">
+                                A) Qg4+
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 1, 'h5', 'h4', 3)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 1, 'c4', 'b5', 2)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p1-o2" style="flex: 1;"
+                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Nxb5 and win your Bishop! Look for a safe defense instead."
+                                 onclick="checkPuzzle(1, 'blunder', 2, 'c4', 'b5', 'd4', 'b5')">
+                                B) Bb5+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 1, 'h5', 'd1', 3)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p1-o3" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Qxh4, winning your Queen! Can you find the safest choice?"
-                                 onclick="checkPuzzle(1, 'blunder', 3, 'h5', 'h4', 'f6', 'h4')">
-                                C) Qh4
+                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Qxf2+, winning your Pawn! Can you find the safest choice?"
+                                 onclick="checkPuzzle(1, 'blunder', 3, 'h5', 'd1', 'f6', 'f2')">
+                                C) Qd1
                             </div>
                         </div>
                         
@@ -620,32 +620,32 @@
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    <p>What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move.</p>
                     
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 2, 'c3', 'b1', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 2, 'c3', 'e4', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p2-o1" style="flex: 1;"
-                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
-                                 onclick="checkPuzzle(2, 'correct', 1, 'c3', 'b1', '', '')">
-                                A) Nb1
+                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Nxe4, winning your Knight! Can you find the safest choice?"
+                                 onclick="checkPuzzle(2, 'blunder', 1, 'c3', 'e4', 'f6', 'e4')">
+                                A) Ne4
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
                             <button class="preview-btn" onclick="togglePreview(this, 2, 'd1', 'b1', 2)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p2-o2" style="flex: 1;"
-                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Kxc3 and win your Queen! Look for a safe defense instead."
+                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Kxc3 and win your Knight! Look for a safe defense instead."
                                  onclick="checkPuzzle(2, 'blunder', 2, 'd1', 'b1', 'b2', 'c3')">
                                 B) Qb1+
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 2, 'd1', 'f1', 3)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 2, 'c3', 'b1', 3)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p2-o3" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Kxc3, winning your Knight! Can you find the safest choice?"
-                                 onclick="checkPuzzle(2, 'blunder', 3, 'd1', 'f1', 'b2', 'c3')">
-                                C) Qf1
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
+                                 onclick="checkPuzzle(2, 'correct', 3, 'c3', 'b1', '', '')">
+                                C) Nb1
                             </div>
                         </div>
                         
@@ -730,32 +730,32 @@
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    <p>What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move.</p>
                     
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 3, 'g5', 'f5', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 3, 'f7', 'f3', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p3-o1" style="flex: 1;"
-                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Kxh4 and win your Queen! Look for a safe defense instead."
-                                 onclick="checkPuzzle(3, 'blunder', 1, 'g5', 'f5', 'h3', 'h4')">
-                                A) Qf5+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 3, 'f7', 'h7', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p3-o2" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Rxg5, winning your Queen! Can you find the safest choice?"
-                                 onclick="checkPuzzle(3, 'blunder', 2, 'f7', 'h7', 'g2', 'g5')">
-                                B) Rh7
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 3, 'f7', 'f3', 3)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p3-o3" style="flex: 1;"
                                  data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
-                                 onclick="checkPuzzle(3, 'correct', 3, 'f7', 'f3', '', '')">
-                                C) Rf3+
+                                 onclick="checkPuzzle(3, 'correct', 1, 'f7', 'f3', '', '')">
+                                A) Rf3+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 3, 'g5', 'f5', 2)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p3-o2" style="flex: 1;"
+                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Kxh4 and win your Bishop! Look for a safe defense instead."
+                                 onclick="checkPuzzle(3, 'blunder', 2, 'g5', 'f5', 'h3', 'h4')">
+                                B) Qf5+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 3, 'g5', 'c5', 3)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p3-o3" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Kxh4, winning your Bishop! Can you find the safest choice?"
+                                 onclick="checkPuzzle(3, 'blunder', 3, 'g5', 'c5', 'h3', 'h4')">
+                                C) Qc5
                             </div>
                         </div>
                         
@@ -840,32 +840,32 @@
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    <p>What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move.</p>
                     
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e2', 'e1', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 4, 'h7', 'f6', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p4-o1" style="flex: 1;"
-                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
-                                 onclick="checkPuzzle(4, 'correct', 1, 'e2', 'e1', '', '')">
-                                A) Re1+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 4, 'h7', 'f6', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p4-o2" style="flex: 1;"
                                  data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Qxf6+ and win your Knight! Look for a safe defense instead."
-                                 onclick="checkPuzzle(4, 'blunder', 2, 'h7', 'f6', 'f5', 'f6')">
-                                B) Nf6
+                                 onclick="checkPuzzle(4, 'blunder', 1, 'h7', 'f6', 'f5', 'f6')">
+                                A) Nf6
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e2', 'e4', 3)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e2', 'e1', 2)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p4-o2" style="flex: 1;"
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
+                                 onclick="checkPuzzle(4, 'correct', 2, 'e2', 'e1', '', '')">
+                                B) Re1+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e2', 'f2', 3)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p4-o3" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Qxe4, winning your Rook! Can you find the safest choice?"
-                                 onclick="checkPuzzle(4, 'blunder', 3, 'e2', 'e4', 'f5', 'e4')">
-                                C) Re4
+                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Qxf2, winning your Rook! Can you find the safest choice?"
+                                 onclick="checkPuzzle(4, 'blunder', 3, 'e2', 'f2', 'f5', 'f2')">
+                                C) Rxf2
                             </div>
                         </div>
                         
