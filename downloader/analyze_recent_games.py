@@ -313,13 +313,7 @@ def main():
         for i, opt in enumerate(options):
             quiz_options_html += f"""
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
-                                    onmousedown="previewMove({idx}, '{opt['from']}', '{opt['to']}')" 
-                                    ontouchstart="previewMove({idx}, '{opt['from']}', '{opt['to']}')"
-                                    onmouseup="resetPreview({idx})"
-                                    ontouchend="resetPreview({idx})"
-                                    onmouseleave="resetPreview({idx})"
-                                    title="Press and hold to preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, {idx}, '{opt['from']}', '{opt['to']}', {i+1})" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p{idx}-o{i+1}" style="flex: 1;"
                                  data-feedback="{opt['feedback'].replace('\"', '&quot;')}"
                                  onclick="checkPuzzle({idx}, '{opt['type']}', {i+1}, '{opt['from']}', '{opt['to']}', '{opt['refutation_from']}', '{opt['refutation_to']}')">
@@ -556,6 +550,29 @@ def main():
             box-shadow: inset 0 0 10px #ef4444;
             border: 2px dashed #ef4444 !important;
             transition: background-color 0.2s ease;
+        }}
+
+        .preview-btn {{
+            background: var(--card-bg);
+            border: 2px solid #334155;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }}
+
+        .preview-btn:hover {{
+            border-color: var(--accent-primary);
+        }}
+
+        .preview-btn.preview-active {{
+            background: var(--accent-primary) !important;
+            border-color: var(--accent-primary) !important;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
         }}
 
         .square.light {{
@@ -901,40 +918,53 @@ def main():
             toEl.style.backgroundColor = 'rgba(139, 92, 246, 0.4)';
         }}
 
-        function previewMove(puzzleId, fromSq, toSq) {{
+        const activePreviews = {{}};
+
+        function togglePreview(btn, puzzleId, fromSq, toSq) {{
             const board = document.getElementById('board-' + puzzleId);
             if (!board) return;
-            
-            // Revert to base state first
+
+            const container = board.closest('.card');
+            const buttons = container.querySelectorAll('.preview-btn');
+
+            // If it's already active, deactivate it
+            if (activePreviews[puzzleId] === btn) {{
+                delete activePreviews[puzzleId];
+                btn.classList.remove('preview-active');
+                
+                // Revert to base state
+                board.innerHTML = baseBoardStates[board.id];
+                board.querySelectorAll('.square').forEach(sq => {{
+                    sq.classList.remove('threat-source', 'threat-target');
+                }});
+                
+                // Re-apply active submitted move if exists
+                const active = activeMoves[puzzleId];
+                if (active) {{
+                    applyMoveToBoard(board, active.fromSq, active.toSq);
+                    if (active.type === 'blunder' && active.refutationFrom && active.refutationTo) {{
+                        const fromEl = board.querySelector(`[data-square="${{active.refutationFrom}}"]`);
+                        const toEl = board.querySelector(`[data-square="${{active.refutationTo}}"]`);
+                        if (fromEl) fromEl.classList.add('threat-source');
+                        if (toEl) toEl.classList.add('threat-target');
+                    }}
+                }}
+                return;
+            }}
+
+            // Otherwise, deactivate other preview buttons on this card and activate this one
+            buttons.forEach(b => b.classList.remove('preview-active'));
+            btn.classList.add('preview-active');
+            activePreviews[puzzleId] = btn;
+
+            // Revert board to base state first and clear highlights
             board.innerHTML = baseBoardStates[board.id];
-            
-            // Apply the hover preview
-            applyMoveToBoard(board, fromSq, toSq);
-        }}
-        
-        function resetPreview(puzzleId) {{
-            const board = document.getElementById('board-' + puzzleId);
-            if (!board) return;
-            
-            // Revert to base state
-            board.innerHTML = baseBoardStates[board.id];
-            
-            // Clear threat highlights
             board.querySelectorAll('.square').forEach(sq => {{
                 sq.classList.remove('threat-source', 'threat-target');
             }});
-            
-            // If there's an active submitted move, re-apply it
-            const active = activeMoves[puzzleId];
-            if (active) {{
-                applyMoveToBoard(board, active.fromSq, active.toSq);
-                if (active.type === 'blunder' && active.refutationFrom && active.refutationTo) {{
-                    const fromEl = board.querySelector(`[data-square="${{active.refutationFrom}}"]`);
-                    const toEl = board.querySelector(`[data-square="${{active.refutationTo}}"]`);
-                    if (fromEl) fromEl.classList.add('threat-source');
-                    if (toEl) toEl.classList.add('threat-target');
-                }}
-            }}
+
+            // Apply preview move
+            applyMoveToBoard(board, fromSq, toSq);
         }}
 
         function checkPuzzle(puzzleId, type, optionIdx, fromSq, toSq, refutationFrom, refutationTo) {{
@@ -943,6 +973,12 @@ def main():
             
             const board = document.getElementById('board-' + puzzleId);
             if (!board) return;
+            
+            // Deactivate and clear any preview states
+            delete activePreviews[puzzleId];
+            const container = board.closest('.card');
+            const buttons = container.querySelectorAll('.preview-btn');
+            buttons.forEach(b => b.classList.remove('preview-active'));
             
             // Revert to base state
             board.innerHTML = baseBoardStates[board.id];
