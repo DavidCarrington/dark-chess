@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 2: Personalized Game Review & Progress Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #ec4899;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --board-light: #f0d9b5;
+            --board-dark: #b58863;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e1b4b, #1d4ed8);
+            padding: 3rem 2rem;
+            text-align: center;
+            border-bottom: 4px solid var(--accent-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: var(--accent-secondary);
+            filter: blur(120px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: var(--accent-primary);
+            filter: blur(120px);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .header-tag {
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.15rem;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0.5rem auto 0 auto;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.1);
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-top: 0;
+            color: #e2e8f0;
+            border-left: 5px solid var(--accent-primary);
+            padding-left: 0.75rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 1.25rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .stat-val {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            color: var(--accent-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-val.win-stat {
+            color: var(--success);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+        }
+
+        .chess-grid-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-start;
+            margin: 1rem 0;
+        }
+
+        .chess-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            width: 100%;
+            max-width: 320px;
+            aspect-ratio: 1;
+            border: 6px solid #334155;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            user-select: none;
+            margin: 0 auto;
+        }
+
+        .square {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.2rem;
+            font-family: 'Segoe UI Symbol', sans-serif;
+            position: relative;
+        }
+
+        .square.light {
+            background-color: var(--board-light);
+        }
+
+        .square.dark {
+            background-color: var(--board-dark);
+        }
+
+        .square.highlighted::after {
+            content: '';
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.6);
+            position: absolute;
+            z-index: 5;
+        }
+
+        .piece {
+            display: inline-block;
+            line-height: 1;
+            z-index: 2;
+        }
+        .piece.white {
+            color: #ffffff;
+            filter: drop-shadow(0 0 1.5px #000) drop-shadow(0 0 2.5px #000);
+        }
+        .piece.black {
+            color: #1a1a1a;
+            filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 2.5px #fff);
+        }
+
+        .explanation-side {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .quiz-container {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .quiz-option {
+            background: var(--card-bg);
+            border: 2px solid #334155;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--accent-primary);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            color: #a7f3d0;
+        }
+
+        .quiz-option.incorrect {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+        }
+
+        .feedback-msg {
+            font-weight: 700;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .feedback-msg.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-left: 4px solid var(--success);
+        }
+
+        .feedback-msg.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border-left: 4px solid var(--danger);
+        }
+
+        .badge {
+            background: var(--accent-primary);
+            color: #fff;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Chart Styling */
+        .chart-container {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #60a5fa;
+        }
+
+        .chart-goal {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            color: #eab308;
+            font-size: 0.9rem;
+        }
+
+        .chart-svg {
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-tag">Progress Review</div>
+        <h1>Your Personalized Chess Board Room</h1>
+        <p class="subtitle">Welcome back! Let's take a look at your daily progress and practice some shield patterns.</p>
+    </header>
+
+    <main>
+
+        <!-- Stats Overview -->
+        <section class="card">
+            <span class="badge">Activity & Performance Overview</span>
+            <h2>Welcome Back, Champion!</h2>
+            <p>
+                Fantastic job playing chess daily! Let's check in on how you've been doing. Every chess player—even grandmasters—works on keeping their pieces safe. Here is a look at your recent numbers:
+            </p>
+            
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-val win-stat">12</div>
+                    <div class="stat-label">Wins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" style="color: var(--text-main);">8</div>
+                    <div class="stat-label">Losses</div>
+                </div>
+                <div class="stat-card" style="border-color: rgba(96,165,250,0.2);">
+                    <div class="stat-val" style="color: #60a5fa;">0</div>
+                    <div class="stat-label">New Matches</div>
+                </div>
+                <div class="stat-card" style="border-color: rgba(234,179,8,0.2);">
+                    <div class="stat-val" style="color: #eab308;">347</div>
+                    <div class="stat-label">Current Rating</div>
+                </div>
+            </div>
+            
+            <p>
+                <em>Tip: We found 0 new games since your last session! Let's put your piece safety skills to the test with custom puzzles from your actual matches.</em>
+            </p>
+        </section>
+
+        <!-- Progress Chart Card -->
+        <section class="card">
+            <span class="badge">Target: 1000 Rating</span>
+            <h2>Your Rating Progress Climb</h2>
+            <p>Here is your rating trajectory showing how close you are to reaching the 1000 milestone! Every game played is a step forward.</p>
+            
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span class="chart-title">Rating Trajectory</span>
+                    <span class="chart-goal">Goal: 1000 🏆</span>
+                </div>
+                <svg viewBox="0 0 800 250" class="chart-svg" id="rating-chart"></svg>
+            </div>
+        </section>
+
+        <!-- Dynamic Puzzle Cards -->
+        
+        <!-- Puzzle 1 -->
+        <div class="card">
+            <span class="badge">Challenge 1: vs hrankt (2026.06.05)</span>
+            <h2>Saved Position from Your Match</h2>
+            <p>In this position, you made a move that unfortunately lost material. Can you find the safest alternative?</p>
+            
+            <div class="chess-grid-container">
+                <div class="chess-board" id="board-1">
+                    <div class="square light" data-square="a8"></div>
+<div class="square dark" data-square="b8"></div>
+<div class="square light" data-square="c8"><span class="piece black">♜</span></div>
+<div class="square dark" data-square="d8"></div>
+<div class="square light" data-square="e8"></div>
+<div class="square dark" data-square="f8"></div>
+<div class="square light" data-square="g8"><span class="piece black">♞</span></div>
+<div class="square dark" data-square="h8"></div>
+<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square light" data-square="b7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
+<div class="square light" data-square="d7"><span class="piece black">♚</span></div>
+<div class="square dark" data-square="e7"></div>
+<div class="square light" data-square="f7"></div>
+<div class="square dark" data-square="g7"><span class="piece black">♟</span></div>
+<div class="square light" data-square="h7"><span class="piece black">♜</span></div>
+<div class="square light" data-square="a6"></div>
+<div class="square dark" data-square="b6"></div>
+<div class="square light" data-square="c6"></div>
+<div class="square dark" data-square="d6"></div>
+<div class="square light" data-square="e6"></div>
+<div class="square dark" data-square="f6"><span class="piece black">♛</span></div>
+<div class="square light" data-square="g6"></div>
+<div class="square dark" data-square="h6"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a5"></div>
+<div class="square light" data-square="b5"></div>
+<div class="square dark" data-square="c5"><span class="piece black">♝</span></div>
+<div class="square light" data-square="d5"></div>
+<div class="square dark" data-square="e5"><span class="piece black">♟</span></div>
+<div class="square light" data-square="f5"></div>
+<div class="square dark" data-square="g5"></div>
+<div class="square light" data-square="h5"><span class="piece white">♕</span></div>
+<div class="square light" data-square="a4"></div>
+<div class="square dark" data-square="b4"></div>
+<div class="square light" data-square="c4"><span class="piece white">♗</span></div>
+<div class="square dark" data-square="d4"><span class="piece black">♞</span></div>
+<div class="square light" data-square="e4"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="f4"></div>
+<div class="square light" data-square="g4"></div>
+<div class="square dark" data-square="h4"></div>
+<div class="square dark" data-square="a3"></div>
+<div class="square light" data-square="b3"></div>
+<div class="square dark" data-square="c3"></div>
+<div class="square light" data-square="d3"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="e3"></div>
+<div class="square light" data-square="f3"></div>
+<div class="square dark" data-square="g3"></div>
+<div class="square light" data-square="h3"></div>
+<div class="square light" data-square="a2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="b2"><span class="piece white">♙</span></div>
+<div class="square light" data-square="c2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="d2"></div>
+<div class="square light" data-square="e2"></div>
+<div class="square dark" data-square="f2"><span class="piece white">♙</span></div>
+<div class="square light" data-square="g2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="h2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="a1"><span class="piece white">♖</span></div>
+<div class="square light" data-square="b1"><span class="piece white">♘</span></div>
+<div class="square dark" data-square="c1"><span class="piece white">♗</span></div>
+<div class="square light" data-square="d1"></div>
+<div class="square dark" data-square="e1"></div>
+<div class="square light" data-square="f1"><span class="piece white">♖</span></div>
+<div class="square dark" data-square="g1"><span class="piece white">♔</span></div>
+<div class="square light" data-square="h1"></div>
+                </div>
+                
+                <div class="explanation-side">
+                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    
+                    <div class="quiz-container">
+
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(1, 'c1', 'g5')" 
+                                    ontouchstart="previewMove(1, 'c1', 'g5')"
+                                    onmouseup="resetPreview(1)"
+                                    ontouchend="resetPreview(1)"
+                                    onmouseleave="resetPreview(1)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p1-o1" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Qxg5, winning your Bishop! Can you find the safest choice?"
+                                 onclick="checkPuzzle(1, 'blunder', 1, 'c1', 'g5')">
+                                A) Bg5
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(1, 'c4', 'b5')" 
+                                    ontouchstart="previewMove(1, 'c4', 'b5')"
+                                    onmouseup="resetPreview(1)"
+                                    ontouchend="resetPreview(1)"
+                                    onmouseleave="resetPreview(1)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p1-o2" style="flex: 1;"
+                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Nxb5 and win your Bishop! Look for a safe defense instead."
+                                 onclick="checkPuzzle(1, 'blunder', 2, 'c4', 'b5')">
+                                B) Bb5+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(1, 'h5', 'g4')" 
+                                    ontouchstart="previewMove(1, 'h5', 'g4')"
+                                    onmouseup="resetPreview(1)"
+                                    ontouchend="resetPreview(1)"
+                                    onmouseleave="resetPreview(1)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p1-o3" style="flex: 1;"
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
+                                 onclick="checkPuzzle(1, 'correct', 3, 'h5', 'g4')">
+                                C) Qg4+
+                            </div>
+                        </div>
+                        
+                        <div id="p1-feedback" class="feedback-msg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Puzzle 2 -->
+        <div class="card">
+            <span class="badge">Challenge 2: vs hrankt (2026.06.05)</span>
+            <h2>Saved Position from Your Match</h2>
+            <p>In this position, you made a move that unfortunately lost material. Can you find the safest alternative?</p>
+            
+            <div class="chess-grid-container">
+                <div class="chess-board" id="board-2">
+                    <div class="square light" data-square="a8"></div>
+<div class="square dark" data-square="b8"></div>
+<div class="square light" data-square="c8"></div>
+<div class="square dark" data-square="d8"></div>
+<div class="square light" data-square="e8"></div>
+<div class="square dark" data-square="f8"></div>
+<div class="square light" data-square="g8"></div>
+<div class="square dark" data-square="h8"></div>
+<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square light" data-square="b7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="c7"></div>
+<div class="square light" data-square="d7"></div>
+<div class="square dark" data-square="e7"></div>
+<div class="square light" data-square="f7"></div>
+<div class="square dark" data-square="g7"><span class="piece black">♟</span></div>
+<div class="square light" data-square="h7"></div>
+<div class="square light" data-square="a6"></div>
+<div class="square dark" data-square="b6"></div>
+<div class="square light" data-square="c6"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="d6"></div>
+<div class="square light" data-square="e6"></div>
+<div class="square dark" data-square="f6"><span class="piece black">♞</span></div>
+<div class="square light" data-square="g6"></div>
+<div class="square dark" data-square="h6"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a5"></div>
+<div class="square light" data-square="b5"></div>
+<div class="square dark" data-square="c5"></div>
+<div class="square light" data-square="d5"></div>
+<div class="square dark" data-square="e5"></div>
+<div class="square light" data-square="f5"></div>
+<div class="square dark" data-square="g5"></div>
+<div class="square light" data-square="h5"></div>
+<div class="square light" data-square="a4"></div>
+<div class="square dark" data-square="b4"></div>
+<div class="square light" data-square="c4"></div>
+<div class="square dark" data-square="d4"></div>
+<div class="square light" data-square="e4"></div>
+<div class="square dark" data-square="f4"></div>
+<div class="square light" data-square="g4"></div>
+<div class="square dark" data-square="h4"></div>
+<div class="square dark" data-square="a3"><span class="piece white">♙</span></div>
+<div class="square light" data-square="b3"></div>
+<div class="square dark" data-square="c3"><span class="piece white">♘</span></div>
+<div class="square light" data-square="d3"></div>
+<div class="square dark" data-square="e3"></div>
+<div class="square light" data-square="f3"></div>
+<div class="square dark" data-square="g3"></div>
+<div class="square light" data-square="h3"></div>
+<div class="square light" data-square="a2"></div>
+<div class="square dark" data-square="b2"><span class="piece black">♚</span></div>
+<div class="square light" data-square="c2"></div>
+<div class="square dark" data-square="d2"></div>
+<div class="square light" data-square="e2"></div>
+<div class="square dark" data-square="f2"></div>
+<div class="square light" data-square="g2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="h2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="a1"></div>
+<div class="square light" data-square="b1"></div>
+<div class="square dark" data-square="c1"></div>
+<div class="square light" data-square="d1"><span class="piece white">♕</span></div>
+<div class="square dark" data-square="e1"></div>
+<div class="square light" data-square="f1"></div>
+<div class="square dark" data-square="g1"></div>
+<div class="square light" data-square="h1"><span class="piece white">♔</span></div>
+                </div>
+                
+                <div class="explanation-side">
+                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    
+                    <div class="quiz-container">
+
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(2, 'd1', 'b1')" 
+                                    ontouchstart="previewMove(2, 'd1', 'b1')"
+                                    onmouseup="resetPreview(2)"
+                                    ontouchend="resetPreview(2)"
+                                    onmouseleave="resetPreview(2)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p2-o1" style="flex: 1;"
+                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Kxc3 and win your Queen! Look for a safe defense instead."
+                                 onclick="checkPuzzle(2, 'blunder', 1, 'd1', 'b1')">
+                                A) Qb1+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(2, 'c3', 'b1')" 
+                                    ontouchstart="previewMove(2, 'c3', 'b1')"
+                                    onmouseup="resetPreview(2)"
+                                    ontouchend="resetPreview(2)"
+                                    onmouseleave="resetPreview(2)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p2-o2" style="flex: 1;"
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
+                                 onclick="checkPuzzle(2, 'correct', 2, 'c3', 'b1')">
+                                B) Nb1
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(2, 'c3', 'a2')" 
+                                    ontouchstart="previewMove(2, 'c3', 'a2')"
+                                    onmouseup="resetPreview(2)"
+                                    ontouchend="resetPreview(2)"
+                                    onmouseleave="resetPreview(2)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p2-o3" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Kxa2, winning your Knight! Can you find the safest choice?"
+                                 onclick="checkPuzzle(2, 'blunder', 3, 'c3', 'a2')">
+                                C) Na2
+                            </div>
+                        </div>
+                        
+                        <div id="p2-feedback" class="feedback-msg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Puzzle 3 -->
+        <div class="card">
+            <span class="badge">Challenge 3: vs adithyan2727 (2026.06.06)</span>
+            <h2>Saved Position from Your Match</h2>
+            <p>In this position, you made a move that unfortunately lost material. Can you find the safest alternative?</p>
+            
+            <div class="chess-grid-container">
+                <div class="chess-board" id="board-3">
+                    <div class="square light" data-square="a8"><span class="piece black">♜</span></div>
+<div class="square dark" data-square="b8"></div>
+<div class="square light" data-square="c8"></div>
+<div class="square dark" data-square="d8"></div>
+<div class="square light" data-square="e8"></div>
+<div class="square dark" data-square="f8"></div>
+<div class="square light" data-square="g8"></div>
+<div class="square dark" data-square="h8"></div>
+<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square light" data-square="b7"></div>
+<div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
+<div class="square light" data-square="d7"></div>
+<div class="square dark" data-square="e7"></div>
+<div class="square light" data-square="f7"><span class="piece white">♖</span></div>
+<div class="square dark" data-square="g7"></div>
+<div class="square light" data-square="h7"></div>
+<div class="square light" data-square="a6"></div>
+<div class="square dark" data-square="b6"></div>
+<div class="square light" data-square="c6"></div>
+<div class="square dark" data-square="d6"></div>
+<div class="square light" data-square="e6"></div>
+<div class="square dark" data-square="f6"></div>
+<div class="square light" data-square="g6"></div>
+<div class="square dark" data-square="h6"></div>
+<div class="square dark" data-square="a5"></div>
+<div class="square light" data-square="b5"></div>
+<div class="square dark" data-square="c5"></div>
+<div class="square light" data-square="d5"></div>
+<div class="square dark" data-square="e5"></div>
+<div class="square light" data-square="f5"></div>
+<div class="square dark" data-square="g5"><span class="piece white">♕</span></div>
+<div class="square light" data-square="h5"></div>
+<div class="square light" data-square="a4"></div>
+<div class="square dark" data-square="b4"></div>
+<div class="square light" data-square="c4"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="d4"></div>
+<div class="square light" data-square="e4"></div>
+<div class="square dark" data-square="f4"></div>
+<div class="square light" data-square="g4"></div>
+<div class="square dark" data-square="h4"><span class="piece white">♗</span></div>
+<div class="square dark" data-square="a3"><span class="piece white">♙</span></div>
+<div class="square light" data-square="b3"></div>
+<div class="square dark" data-square="c3"><span class="piece white">♙</span></div>
+<div class="square light" data-square="d3"></div>
+<div class="square dark" data-square="e3"></div>
+<div class="square light" data-square="f3"></div>
+<div class="square dark" data-square="g3"></div>
+<div class="square light" data-square="h3"><span class="piece black">♚</span></div>
+<div class="square light" data-square="a2"></div>
+<div class="square dark" data-square="b2"><span class="piece white">♙</span></div>
+<div class="square light" data-square="c2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="d2"></div>
+<div class="square light" data-square="e2"></div>
+<div class="square dark" data-square="f2"></div>
+<div class="square light" data-square="g2"><span class="piece black">♜</span></div>
+<div class="square dark" data-square="h2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="a1"></div>
+<div class="square light" data-square="b1"></div>
+<div class="square dark" data-square="c1"><span class="piece white">♔</span></div>
+<div class="square light" data-square="d1"></div>
+<div class="square dark" data-square="e1"></div>
+<div class="square light" data-square="f1"></div>
+<div class="square dark" data-square="g1"></div>
+<div class="square light" data-square="h1"><span class="piece white">♖</span></div>
+                </div>
+                
+                <div class="explanation-side">
+                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    
+                    <div class="quiz-container">
+
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(3, 'g5', 'a5')" 
+                                    ontouchstart="previewMove(3, 'g5', 'a5')"
+                                    onmouseup="resetPreview(3)"
+                                    ontouchend="resetPreview(3)"
+                                    onmouseleave="resetPreview(3)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p3-o1" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Kxh4, winning your Bishop! Can you find the safest choice?"
+                                 onclick="checkPuzzle(3, 'blunder', 1, 'g5', 'a5')">
+                                A) Qa5
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(3, 'g5', 'f5')" 
+                                    ontouchstart="previewMove(3, 'g5', 'f5')"
+                                    onmouseup="resetPreview(3)"
+                                    ontouchend="resetPreview(3)"
+                                    onmouseleave="resetPreview(3)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p3-o2" style="flex: 1;"
+                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Kxh4 and win your Queen! Look for a safe defense instead."
+                                 onclick="checkPuzzle(3, 'blunder', 2, 'g5', 'f5')">
+                                B) Qf5+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(3, 'f7', 'f3')" 
+                                    ontouchstart="previewMove(3, 'f7', 'f3')"
+                                    onmouseup="resetPreview(3)"
+                                    ontouchend="resetPreview(3)"
+                                    onmouseleave="resetPreview(3)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p3-o3" style="flex: 1;"
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
+                                 onclick="checkPuzzle(3, 'correct', 3, 'f7', 'f3')">
+                                C) Rf3+
+                            </div>
+                        </div>
+                        
+                        <div id="p3-feedback" class="feedback-msg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Puzzle 4 -->
+        <div class="card">
+            <span class="badge">Challenge 4: vs TheDarkNight98 (2026.06.09)</span>
+            <h2>Saved Position from Your Match</h2>
+            <p>In this position, you made a move that unfortunately lost material. Can you find the safest alternative?</p>
+            
+            <div class="chess-grid-container">
+                <div class="chess-board" id="board-4">
+                    <div class="square light" data-square="h1"></div>
+<div class="square dark" data-square="g1"><span class="piece white">♔</span></div>
+<div class="square light" data-square="f1"></div>
+<div class="square dark" data-square="e1"></div>
+<div class="square light" data-square="d1"></div>
+<div class="square dark" data-square="c1"></div>
+<div class="square light" data-square="b1"></div>
+<div class="square dark" data-square="a1"></div>
+<div class="square dark" data-square="h2"></div>
+<div class="square light" data-square="g2"><span class="piece white">♙</span></div>
+<div class="square dark" data-square="f2"><span class="piece white">♙</span></div>
+<div class="square light" data-square="e2"><span class="piece black">♜</span></div>
+<div class="square dark" data-square="d2"></div>
+<div class="square light" data-square="c2"></div>
+<div class="square dark" data-square="b2"></div>
+<div class="square light" data-square="a2"></div>
+<div class="square light" data-square="h3"></div>
+<div class="square dark" data-square="g3"></div>
+<div class="square light" data-square="f3"></div>
+<div class="square dark" data-square="e3"></div>
+<div class="square light" data-square="d3"></div>
+<div class="square dark" data-square="c3"></div>
+<div class="square light" data-square="b3"></div>
+<div class="square dark" data-square="a3"></div>
+<div class="square dark" data-square="h4"></div>
+<div class="square light" data-square="g4"></div>
+<div class="square dark" data-square="f4"></div>
+<div class="square light" data-square="e4"></div>
+<div class="square dark" data-square="d4"></div>
+<div class="square light" data-square="c4"></div>
+<div class="square dark" data-square="b4"></div>
+<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="h5"></div>
+<div class="square dark" data-square="g5"></div>
+<div class="square light" data-square="f5"><span class="piece white">♕</span></div>
+<div class="square dark" data-square="e5"></div>
+<div class="square light" data-square="d5"></div>
+<div class="square dark" data-square="c5"></div>
+<div class="square light" data-square="b5"></div>
+<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="h6"><span class="piece black">♚</span></div>
+<div class="square light" data-square="g6"></div>
+<div class="square dark" data-square="f6"></div>
+<div class="square light" data-square="e6"></div>
+<div class="square dark" data-square="d6"><span class="piece white">♗</span></div>
+<div class="square light" data-square="c6"></div>
+<div class="square dark" data-square="b6"><span class="piece white">♖</span></div>
+<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="h7"><span class="piece black">♞</span></div>
+<div class="square dark" data-square="g7"></div>
+<div class="square light" data-square="f7"></div>
+<div class="square dark" data-square="e7"></div>
+<div class="square light" data-square="d7"></div>
+<div class="square dark" data-square="c7"></div>
+<div class="square light" data-square="b7"></div>
+<div class="square dark" data-square="a7"></div>
+<div class="square dark" data-square="h8"></div>
+<div class="square light" data-square="g8"></div>
+<div class="square dark" data-square="f8"></div>
+<div class="square light" data-square="e8"></div>
+<div class="square dark" data-square="d8"></div>
+<div class="square light" data-square="c8"></div>
+<div class="square dark" data-square="b8"></div>
+<div class="square light" data-square="a8"></div>
+                </div>
+                
+                <div class="explanation-side">
+                    <p>What is a safer, solid choice here? <strong>Press and hold 👁️</strong> to preview the move.</p>
+                    
+                    <div class="quiz-container">
+
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(4, 'h7', 'f6')" 
+                                    ontouchstart="previewMove(4, 'h7', 'f6')"
+                                    onmouseup="resetPreview(4)"
+                                    ontouchend="resetPreview(4)"
+                                    onmouseleave="resetPreview(4)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p4-o1" style="flex: 1;"
+                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Qxf6+ and win your Knight! Look for a safe defense instead."
+                                 onclick="checkPuzzle(4, 'blunder', 1, 'h7', 'f6')">
+                                A) Nf6
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(4, 'e2', 'e1')" 
+                                    ontouchstart="previewMove(4, 'e2', 'e1')"
+                                    onmouseup="resetPreview(4)"
+                                    ontouchend="resetPreview(4)"
+                                    onmouseleave="resetPreview(4)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p4-o2" style="flex: 1;"
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
+                                 onclick="checkPuzzle(4, 'correct', 2, 'e2', 'e1')">
+                                B) Re1+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" style="background: var(--card-bg); border: 2px solid #334155; padding: 0.75rem; border-radius: 8px; cursor: pointer; color: white;" 
+                                    onmousedown="previewMove(4, 'e2', 'c2')" 
+                                    ontouchstart="previewMove(4, 'e2', 'c2')"
+                                    onmouseup="resetPreview(4)"
+                                    ontouchend="resetPreview(4)"
+                                    onmouseleave="resetPreview(4)"
+                                    title="Press and hold to preview">👁️</button>
+                            <div class="quiz-option" id="p4-o3" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Qxc2, winning your Rook! Can you find the safest choice?"
+                                 onclick="checkPuzzle(4, 'blunder', 3, 'e2', 'c2')">
+                                C) Rc2
+                            </div>
+                        </div>
+                        
+                        <div id="p4-feedback" class="feedback-msg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+
+        <!-- General Training Card -->
+        <section class="card">
+            <span class="badge">Pro Chess Habits</span>
+            <h2>Keeping Your Army Defended</h2>
+            <p>
+                As you keep playing, build this quick habit before every move:
+            </p>
+            <ol>
+                <li><strong>Look at the board:</strong> Did your opponent's last move make a new threat?</li>
+                <li><strong>Do a landing scan:</strong> Is the square you are moving to safe and protected?</li>
+            </ol>
+            <p>
+                Use the **Chess.com Game Review** feature to review your games. Check out where the coach points out key defense patterns!
+            </p>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Chess Mastery Journey for darkkkkkkk0 • Made with 💙</p>
+    </footer>
+
+    <script>
+        // Rating history data injected from python
+        const ratingHistory = [198, 157, 149, 142, 150, 283, 158, 291, 299, 299, 299, 307, 315, 323, 314, 150, 322, 330, 338, 330, 322, 314, 306, 314, 323, 331, 323, 331, 339, 347];
+        
+        function drawChart() {
+            const svg = document.getElementById('rating-chart');
+            if (ratingHistory.length === 0) return;
+            
+            const width = 800;
+            const height = 220;
+            const padding = 40;
+            
+            // Map values
+            let minRating = Math.min(...ratingHistory) - 10;
+            let maxRating = Math.max(...ratingHistory) + 10;
+            if (maxRating - minRating < 20) {
+                maxRating = minRating + 20;
+            }
+            
+            const pointsCount = ratingHistory.length;
+            const stepX = (width - padding * 2) / Math.max(1, pointsCount - 1);
+            
+            function getY(rating) {
+                const ratio = (rating - minRating) / (maxRating - minRating);
+                return height - padding - ratio * (height - padding * 2);
+            }
+            
+            // Generate path
+            let d = "";
+            let dotsHTML = "";
+            
+            for (let i = 0; i < pointsCount; i++) {
+                const x = padding + i * stepX;
+                const y = getY(ratingHistory[i]);
+                
+                if (i === 0) {
+                    d += `M ${x} ${y}`;
+                } else {
+                    d += ` L ${x} ${y}`;
+                }
+                
+                // Add glowing circles on dots
+                dotsHTML += `<circle cx="${x}" cy="${y}" r="5" fill="#a78bfa" stroke="#fff" stroke-width="2">
+                    <title>Game: ${ratingHistory[i]}</title>
+                </circle>`;
+            }
+            
+            svg.innerHTML = `
+                <!-- Gradient definition -->
+                <defs>
+                    <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#3b82f6" />
+                        <stop offset="100%" stop-color="#10b981" />
+                    </linearGradient>
+                    <linearGradient id="area-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3" />
+                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+                    </linearGradient>
+                </defs>
+                
+                <!-- Floor baseline rating grid -->
+                <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" 
+                      stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                <text x="${padding - 30}" y="${height - padding + 4}" fill="#94a3b8" font-size="12" font-family="Outfit">${minRating}</text>
+                
+                <!-- Current rating grid -->
+                <line x1="${padding}" y1="${getY(ratingHistory[pointsCount - 1])}" x2="${width - padding}" y2="${getY(ratingHistory[pointsCount - 1])}" 
+                      stroke="rgba(167, 139, 250, 0.4)" stroke-dasharray="4" stroke-width="1" />
+                <text x="${padding - 38}" y="${getY(ratingHistory[pointsCount - 1]) + 4}" fill="#a78bfa" font-weight="700" font-size="12" font-family="Outfit">${ratingHistory[pointsCount - 1]}</text>
+                
+                <!-- Area fill -->
+                <path d="${d} L ${padding + (pointsCount-1)*stepX} ${height - padding} L ${padding} ${height - padding} Z" 
+                      fill="url(#area-grad)" />
+                      
+                <!-- Glowing rating line -->
+                <path d="${d}" fill="none" stroke="url(#line-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                
+                <!-- Dots -->
+                ${dotsHTML}
+            `;
+        }
+        
+        // Draw the chart on load
+        window.addEventListener('load', drawChart);
+
+        const baseBoardStates = {};
+        const activeMoves = {};
+        
+        // Save base board states for ALL boards
+        window.addEventListener('load', () => {
+            const boards = document.querySelectorAll('.chess-board');
+            boards.forEach(board => {
+                // Save the base state of the board for previews
+                baseBoardStates[board.id] = board.innerHTML;
+            });
+        });
+        
+        function applyMoveToBoard(board, fromSq, toSq) {
+            const fromEl = board.querySelector(`[data-square="${fromSq}"]`);
+            const toEl = board.querySelector(`[data-square="${toSq}"]`);
+            if (!fromEl || !toEl) return;
+            
+            const piece = fromEl.innerHTML;
+            fromEl.innerHTML = '';
+            toEl.innerHTML = piece;
+            fromEl.style.backgroundColor = 'rgba(139, 92, 246, 0.4)';
+            toEl.style.backgroundColor = 'rgba(139, 92, 246, 0.4)';
+        }
+
+        function previewMove(puzzleId, fromSq, toSq) {
+            const board = document.getElementById('board-' + puzzleId);
+            if (!board) return;
+            
+            // Revert to base state first
+            board.innerHTML = baseBoardStates[board.id];
+            
+            // Apply the hover preview
+            applyMoveToBoard(board, fromSq, toSq);
+        }
+        
+        function resetPreview(puzzleId) {
+            const board = document.getElementById('board-' + puzzleId);
+            if (!board) return;
+            
+            // Revert to base state
+            board.innerHTML = baseBoardStates[board.id];
+            
+            // If there's an active submitted move, re-apply it
+            if (activeMoves[puzzleId]) {
+                applyMoveToBoard(board, activeMoves[puzzleId].fromSq, activeMoves[puzzleId].toSq);
+            }
+        }
+
+        function checkPuzzle(puzzleId, type, optionIdx, fromSq, toSq) {
+            // Save as active submitted move
+            activeMoves[puzzleId] = { fromSq, toSq };
+            
+            // Visually execute the move
+            previewMove(puzzleId, fromSq, toSq);
+            const feedback = document.getElementById('p' + puzzleId + '-feedback');
+            
+            feedback.style.display = 'block';
+            
+            // Reset styles
+            for (let i = 1; i <= 3; i++) {
+                const opt = document.getElementById('p' + puzzleId + '-o' + i);
+                if (opt) opt.className = 'quiz-option';
+            }
+            
+            const clickedOpt = document.getElementById('p' + puzzleId + '-o' + optionIdx);
+            const feedbackText = clickedOpt ? clickedOpt.getAttribute('data-feedback') : '';
+            if (type === 'blunder') {
+                if (clickedOpt) clickedOpt.classList.add('incorrect');
+                feedback.className = 'feedback-msg danger';
+                feedback.innerHTML = feedbackText;
+            } else if (type === 'correct') {
+                if (clickedOpt) clickedOpt.classList.add('correct');
+                feedback.className = 'feedback-msg success';
+                feedback.innerHTML = feedbackText;
+            }
+        }
+    </script>
+</body>
+</html>

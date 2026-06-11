@@ -1,0 +1,468 @@
+import os
+import re
+import glob
+from datetime import datetime
+
+def parse_lesson_file(filepath):
+    """
+    Parses a lesson HTML file to extract metadata and stats.
+    """
+    filename = os.path.basename(filepath)
+    # Extract lesson number from filename (e.g. 0001 -> Lesson 1)
+    num_match = re.match(r'^(\d+)', filename)
+    lesson_num = int(num_match.group(1)) if num_match else 0
+    lesson_title = f"Lesson {lesson_num}: Game Review"
+    
+    # Read file content
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Try to extract title
+    title_match = re.search(r'<title>(.*?)</title>', content)
+    if title_match:
+        full_title = title_match.group(1)
+        # If the title is generic, make it specific to the lesson number
+        if "Lesson 2:" in full_title and lesson_num != 2:
+            lesson_title = f"Lesson {lesson_num}: Personalized Game Review"
+        else:
+            lesson_title = full_title
+            
+    # Extract stats using regex
+    # Wins: <div class="stat-val win-stat">(\d+)</div>
+    wins_match = re.search(r'<div class="stat-val win-stat">(\d+)</div>', content)
+    wins = int(wins_match.group(1)) if wins_match else 0
+    
+    # Losses: <div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Losses</div>
+    losses_match = re.search(r'<div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Losses</div>', content)
+    losses = int(losses_match.group(1)) if losses_match else 0
+    
+    # Rating: <div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Current Rating</div>
+    rating_match = re.search(r'<div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Current Rating</div>', content)
+    rating = int(rating_match.group(1)) if rating_match else 300
+    
+    # Count challenges (number of boards)
+    challenges = len(re.findall(r'class="chess-board"', content))
+    
+    # File compile date (modification time)
+    mtime = os.path.getmtime(filepath)
+    compile_date = datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M')
+    
+    return {
+        "num": lesson_num,
+        "filename": filename,
+        "filepath": filepath,
+        "title": lesson_title,
+        "wins": wins,
+        "losses": losses,
+        "rating": rating,
+        "challenges": challenges,
+        "compile_date": compile_date
+    }
+
+def generate_index_html(lessons, output_path):
+    """
+    Generates a premium index.html linking to all lessons.
+    """
+    lessons_html = []
+    
+    for lesson in lessons:
+        lessons_html.append(f"""
+            <!-- Lesson Card {lesson['num']} -->
+            <div class="lesson-card">
+                <div class="lesson-header">
+                    <span class="lesson-badge">Lesson {lesson['num']}</span>
+                    <span class="lesson-date">Updated: {lesson['compile_date']}</span>
+                </div>
+                <h3>{lesson['title']}</h3>
+                <p>Personalized blunder scanning and safety analysis generated from your recent games on Chess.com.</p>
+                
+                <div class="lesson-stats">
+                    <div class="l-stat">
+                        <span class="l-stat-val">{lesson['challenges']}</span>
+                        <span class="l-stat-lbl">Puzzles</span>
+                    </div>
+                    <div class="l-stat">
+                        <span class="l-stat-val" style="color: var(--success);">{lesson['wins']}</span>
+                        <span class="l-stat-lbl">Wins</span>
+                    </div>
+                    <div class="l-stat">
+                        <span class="l-stat-val" style="color: #ef4444;">{lesson['losses']}</span>
+                        <span class="l-stat-lbl">Losses</span>
+                    </div>
+                    <div class="l-stat">
+                        <span class="l-stat-val" style="color: #eab308;">{lesson['rating']}</span>
+                        <span class="l-stat-lbl">Rating</span>
+                    </div>
+                </div>
+                
+                <a href="lessons/{lesson['filename']}" class="btn-primary" id="btn-lesson-{lesson['num']}">
+                    Start Practice <span>→</span>
+                </a>
+            </div>
+        """)
+        
+    latest_rating = lessons[0]['rating'] if lessons else 300
+    total_puzzles = sum(l['challenges'] for l in lessons)
+    
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Mastery Portal | darkkkkkkk0</title>
+    <meta name="description" content="Personalized chess training portal and interactive blunder review dashboard for darkkkkkkk0.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {{
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #ec4899;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+        }}
+
+        body {{
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }}
+
+        header {{
+            background: linear-gradient(135deg, #1e1b4b, #1d4ed8);
+            padding: 4rem 2rem;
+            text-align: center;
+            border-bottom: 4px solid var(--accent-primary);
+            position: relative;
+            overflow: hidden;
+        }}
+
+        header::after {{
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: var(--accent-secondary);
+            filter: blur(120px);
+            opacity: 0.3;
+            pointer-events: none;
+        }}
+
+        header::before {{
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: var(--accent-primary);
+            filter: blur(120px);
+            opacity: 0.3;
+            pointer-events: none;
+        }}
+
+        .header-tag {{
+            font-family: 'Outfit', sans-serif;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 0.9rem;
+            letter-spacing: 0.15rem;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }}
+
+        h1 {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }}
+
+        .subtitle {{
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0.5rem auto 0 auto;
+        }}
+
+        main {{
+            max-width: 1000px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }}
+
+        .summary-banner {{
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }}
+
+        .summary-text {{
+            flex: 1;
+            min-width: 280px;
+        }}
+
+        .summary-title {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+            color: #e2e8f0;
+        }}
+
+        .summary-desc {{
+            color: var(--text-muted);
+            margin: 0;
+        }}
+
+        .summary-stats {{
+            display: flex;
+            gap: 2rem;
+        }}
+
+        .summary-stat-box {{
+            text-align: center;
+        }}
+
+        .summary-stat-val {{
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            color: var(--accent-primary);
+            line-height: 1;
+        }}
+
+        .summary-stat-lbl {{
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            margin-top: 0.25rem;
+            display: block;
+        }}
+
+        .lessons-grid {{
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }}
+
+        .lesson-card {{
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }}
+
+        .lesson-card:hover {{
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px -5px rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+        }}
+
+        .lesson-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }}
+
+        .lesson-badge {{
+            background: var(--accent-primary);
+            color: #fff;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+        }}
+
+        .lesson-date {{
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }}
+
+        .lesson-card h3 {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            color: #e2e8f0;
+        }}
+
+        .lesson-card p {{
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin: 0 0 1.5rem 0;
+            flex-grow: 1;
+        }}
+
+        .lesson-stats {{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            background: rgba(15, 23, 42, 0.4);
+            padding: 0.75rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }}
+
+        .l-stat {{
+            text-align: center;
+        }}
+
+        .l-stat-val {{
+            display: block;
+            font-weight: 700;
+            font-size: 1.1rem;
+            font-family: 'Outfit', sans-serif;
+        }}
+
+        .l-stat-lbl {{
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }}
+
+        .btn-primary {{
+            background: linear-gradient(135deg, var(--accent-primary), #6366f1);
+            color: white;
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            display: block;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }}
+
+        .btn-primary:hover {{
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            transform: translateY(-1px);
+        }}
+
+        .btn-primary span {{
+            transition: transform 0.2s ease;
+            display: inline-block;
+            margin-left: 4px;
+        }}
+
+        .btn-primary:hover span {{
+            transform: translateX(4px);
+        }}
+
+        footer {{
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 5rem;
+        }}
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-tag">Chess Training Portal</div>
+        <h1>Chess Mastery Portal</h1>
+        <p class="subtitle">Personalized Interactive Lessons & Blunder Reviews for darkkkkkkk0</p>
+    </header>
+
+    <main>
+        
+        <!-- Summary Dashboard -->
+        <section class="summary-banner">
+            <div class="summary-text">
+                <h2 class="summary-title">Your Progress Status</h2>
+                <p class="summary-desc">Analyzing your chess.com matches dynamically to locate blunder profiles. Run the update loop daily to import and study your latest games!</p>
+            </div>
+            <div class="summary-stats">
+                <div class="summary-stat-box">
+                    <span class="summary-stat-val">{len(lessons)}</span>
+                    <span class="summary-stat-lbl">Total Lessons</span>
+                </div>
+                <div class="summary-stat-box">
+                    <span class="summary-stat-val" style="color: var(--accent-secondary);">{total_puzzles}</span>
+                    <span class="summary-stat-lbl">Active Puzzles</span>
+                </div>
+                <div class="summary-stat-box">
+                    <span class="summary-stat-val" style="color: #eab308;">{latest_rating}</span>
+                    <span class="summary-stat-lbl">Latest Rating</span>
+                </div>
+            </div>
+        </section>
+
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin: 0 0 1rem 0; border-left: 5px solid var(--accent-primary); padding-left: 0.75rem;">Your Lessons List</h2>
+        
+        <div class="lessons-grid">
+            {"".join(lessons_html)}
+        </div>
+
+    </main>
+
+    <footer>
+        <p>Chess Mastery Journey for darkkkkkkk0 • Made with 💙</p>
+    </footer>
+
+</body>
+</html>
+"""
+
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+
+def main():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    lessons_dir = os.path.join(project_root, "lessons")
+    output_path = os.path.join(project_root, "index.html")
+    
+    print(f"Scanning {lessons_dir} for lessons...")
+    lesson_files = glob.glob(os.path.join(lessons_dir, "*.html"))
+    
+    lessons = []
+    for filepath in lesson_files:
+        try:
+            lesson_info = parse_lesson_file(filepath)
+            lessons.append(lesson_info)
+        except Exception as e:
+            print(f"Error parsing {filepath}: {e}")
+            
+    # Sort lessons in reverse order (newest/highest lesson number first)
+    lessons.sort(key=lambda x: x['num'], reverse=True)
+    
+    print(f"Generating dashboard at {output_path} with {len(lessons)} lessons...")
+    generate_index_html(lessons, output_path)
+    print("Dashboard generated successfully!")
+
+if __name__ == "__main__":
+    main()

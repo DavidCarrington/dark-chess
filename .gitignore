@@ -1,0 +1,9 @@
+# Compiled Python files
+__pycache__/
+*.pyc
+
+# Local chess data and cache files
+downloader/*_games.pgn
+downloader/*_processed_archives.txt
+downloader/*_uuids.txt
+downloader/last_analysis_count.txt
