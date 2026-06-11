@@ -31,8 +31,8 @@ def evaluate_move_threat(board, move, player_color):
 
     if worst_op_move:
         piece_name = chess.piece_name(piece_lost_type).capitalize()
-        return max_diff, temp_board.san(worst_op_move), piece_name
-    return 0, None, None
+        return max_diff, temp_board.san(worst_op_move), piece_name, worst_op_move
+    return 0, None, None, None
 
 def find_safe_move(board, player_color):
     legal_moves = list(board.legal_moves)
@@ -40,7 +40,7 @@ def find_safe_move(board, player_color):
     
     # Check each legal move
     for move in legal_moves:
-        max_diff, _, _ = evaluate_move_threat(board, move, player_color)
+        max_diff, _, _, _ = evaluate_move_threat(board, move, player_color)
         
         # If no immediate material loss, it is a safe move
         if max_diff == 0:
@@ -216,10 +216,14 @@ def main():
                 random_move_obj = random.choice(alt_move_objs) if alt_move_objs else blunder_move
                 random_move_san = board_before.san(random_move_obj)
                 
-                diff, op_san, piece_lost = evaluate_move_threat(board_before, random_move_obj, player_color)
-                if diff > 0:
+                diff, op_san, piece_lost, op_move_obj = evaluate_move_threat(board_before, random_move_obj, player_color)
+                if diff > 0 and op_move_obj:
+                    random_refutation_from = chess.square_name(op_move_obj.from_square)
+                    random_refutation_to = chess.square_name(op_move_obj.to_square)
                     random_feedback = f"❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with {op_san}, winning your {piece_lost}! Can you find the safest choice?"
                 else:
+                    random_refutation_from = ""
+                    random_refutation_to = ""
                     random_feedback = "❌ <strong>Not quite!</strong> While this move doesn't lose material immediately, there's an even stronger option that protects your pieces or develops your position better."
                 
                 sq_name = chess.square_name(blunder_move.to_square)
@@ -230,6 +234,8 @@ def main():
                 else:
                     description = "In this position, you made a capture that allowed a quick counter-attack and lost material. Look for a safer developing move instead!"
                 
+                opponent_move = moves[opponent_move_idx]
+                
                 blunder_details.append({
                     "game_num": g_idx,
                     "opponent": opponent,
@@ -239,12 +245,16 @@ def main():
                     "blunder_from": chess.square_name(blunder_move.from_square),
                     "blunder_to": chess.square_name(blunder_move.to_square),
                     "opponent_move": move_sans[opponent_move_idx],
+                    "opponent_from": chess.square_name(opponent_move.from_square),
+                    "opponent_to": chess.square_name(opponent_move.to_square),
                     "safe_move": safe_move_san if safe_move_san else "None",
                     "safe_from": chess.square_name(safe_move_obj.from_square) if safe_move_obj else "",
                     "safe_to": chess.square_name(safe_move_obj.to_square) if safe_move_obj else "",
                     "random_move": random_move_san,
                     "random_from": chess.square_name(random_move_obj.from_square),
                     "random_to": chess.square_name(random_move_obj.to_square),
+                    "random_refutation_from": random_refutation_from,
+                    "random_refutation_to": random_refutation_to,
                     "random_feedback": random_feedback,
                     "description": description,
                     "fen_before": board_before.fen(),
@@ -273,6 +283,8 @@ def main():
                 "type": "blunder", 
                 "from": p['blunder_from'], 
                 "to": p['blunder_to'],
+                "refutation_from": p.get('opponent_from', ''),
+                "refutation_to": p.get('opponent_to', ''),
                 "feedback": f"❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play {p['opponent_move']} and win your {p['piece_blundered']}! Look for a safe defense instead."
             },
             {
@@ -280,6 +292,8 @@ def main():
                 "type": "correct", 
                 "from": p['safe_from'], 
                 "to": p['safe_to'],
+                "refutation_from": '',
+                "refutation_to": '',
                 "feedback": "🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
             },
             {
@@ -287,6 +301,8 @@ def main():
                 "type": "blunder", 
                 "from": p['random_from'], 
                 "to": p['random_to'],
+                "refutation_from": p.get('random_refutation_from', ''),
+                "refutation_to": p.get('random_refutation_to', ''),
                 "feedback": p['random_feedback']
             }
         ]
@@ -306,7 +322,7 @@ def main():
                                     title="Press and hold to preview">👁️</button>
                             <div class="quiz-option" id="p{idx}-o{i+1}" style="flex: 1;"
                                  data-feedback="{opt['feedback'].replace('\"', '&quot;')}"
-                                 onclick="checkPuzzle({idx}, '{opt['type']}', {i+1}, '{opt['from']}', '{opt['to']}')">
+                                 onclick="checkPuzzle({idx}, '{opt['type']}', {i+1}, '{opt['from']}', '{opt['to']}', '{opt['refutation_from']}', '{opt['refutation_to']}')">
                                 {letters[i]}) {opt['label']}
                             </div>
                         </div>"""
@@ -526,6 +542,20 @@ def main():
             font-size: 2.2rem;
             font-family: 'Segoe UI Symbol', sans-serif;
             position: relative;
+            aspect-ratio: 1; /* Keep perfect square aspect ratio to prevent empty rows from collapsing */
+        }}
+
+        .square.threat-source {{
+            background-color: rgba(239, 68, 68, 0.7) !important;
+            box-shadow: inset 0 0 12px #ef4444;
+            transition: background-color 0.2s ease;
+        }}
+
+        .square.threat-target {{
+            background-color: rgba(239, 68, 68, 0.4) !important;
+            box-shadow: inset 0 0 10px #ef4444;
+            border: 2px dashed #ef4444 !important;
+            transition: background-color 0.2s ease;
         }}
 
         .square.light {{
@@ -889,20 +919,43 @@ def main():
             // Revert to base state
             board.innerHTML = baseBoardStates[board.id];
             
+            // Clear threat highlights
+            board.querySelectorAll('.square').forEach(sq => {{
+                sq.classList.remove('threat-source', 'threat-target');
+            }});
+            
             // If there's an active submitted move, re-apply it
-            if (activeMoves[puzzleId]) {{
-                applyMoveToBoard(board, activeMoves[puzzleId].fromSq, activeMoves[puzzleId].toSq);
+            const active = activeMoves[puzzleId];
+            if (active) {{
+                applyMoveToBoard(board, active.fromSq, active.toSq);
+                if (active.type === 'blunder' && active.refutationFrom && active.refutationTo) {{
+                    const fromEl = board.querySelector(`[data-square="${{active.refutationFrom}}"]`);
+                    const toEl = board.querySelector(`[data-square="${{active.refutationTo}}"]`);
+                    if (fromEl) fromEl.classList.add('threat-source');
+                    if (toEl) toEl.classList.add('threat-target');
+                }}
             }}
         }}
 
-        function checkPuzzle(puzzleId, type, optionIdx, fromSq, toSq) {{
+        function checkPuzzle(puzzleId, type, optionIdx, fromSq, toSq, refutationFrom, refutationTo) {{
             // Save as active submitted move
-            activeMoves[puzzleId] = {{ fromSq, toSq }};
+            activeMoves[puzzleId] = {{ fromSq, toSq, refutationFrom, refutationTo, type }};
             
-            // Visually execute the move
-            previewMove(puzzleId, fromSq, toSq);
+            const board = document.getElementById('board-' + puzzleId);
+            if (!board) return;
+            
+            // Revert to base state
+            board.innerHTML = baseBoardStates[board.id];
+            
+            // Clear threat highlights
+            board.querySelectorAll('.square').forEach(sq => {{
+                sq.classList.remove('threat-source', 'threat-target');
+            }});
+            
+            // Visually execute the player's move
+            applyMoveToBoard(board, fromSq, toSq);
+            
             const feedback = document.getElementById('p' + puzzleId + '-feedback');
-            
             feedback.style.display = 'block';
             
             // Reset styles
@@ -914,11 +967,19 @@ def main():
             const clickedOpt = document.getElementById('p' + puzzleId + '-o' + optionIdx);
             const feedbackText = clickedOpt ? clickedOpt.getAttribute('data-feedback') : '';
             if (type === 'blunder') {{
-                if (clickedOpt) clickedOpt.classList.add('incorrect');
+                if (clickedOpt) clickedOpt.className = 'quiz-option incorrect';
                 feedback.className = 'feedback-msg danger';
                 feedback.innerHTML = feedbackText;
+                
+                // Highlight the threat attacker and target squares
+                if (refutationFrom && refutationTo) {{
+                    const fromEl = board.querySelector(`[data-square="${{refutationFrom}}"]`);
+                    const toEl = board.querySelector(`[data-square="${{refutationTo}}"]`);
+                    if (fromEl) fromEl.classList.add('threat-source');
+                    if (toEl) toEl.classList.add('threat-target');
+                }}
             }} else if (type === 'correct') {{
-                if (clickedOpt) clickedOpt.classList.add('correct');
+                if (clickedOpt) clickedOpt.className = 'quiz-option correct';
                 feedback.className = 'feedback-msg success';
                 feedback.innerHTML = feedbackText;
             }}
