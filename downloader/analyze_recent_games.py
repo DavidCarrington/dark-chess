@@ -8,6 +8,70 @@ def get_material(board, color):
     values = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3, chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 0}
     return sum(values.get(p.piece_type, 0) for p in board.piece_map().values() if p.color == color)
 
+def quiescence(board, alpha, beta, player_color):
+    stand_pat = get_material(board, player_color) - get_material(board, not player_color)
+    is_player_turn = (board.turn == player_color)
+    if is_player_turn:
+        if stand_pat >= beta:
+            return beta
+        if stand_pat > alpha:
+            alpha = stand_pat
+        for move in board.legal_moves:
+            if board.is_capture(move):
+                board.push(move)
+                score = quiescence(board, alpha, beta, player_color)
+                board.pop()
+                if score >= beta:
+                    return beta
+                if score > alpha:
+                    alpha = score
+        return alpha
+    else:
+        if stand_pat <= alpha:
+            return alpha
+        if stand_pat < beta:
+            beta = stand_pat
+        for move in board.legal_moves:
+            if board.is_capture(move):
+                board.push(move)
+                score = quiescence(board, alpha, beta, player_color)
+                board.pop()
+                if score <= alpha:
+                    return alpha
+                if score < beta:
+                    beta = score
+        return beta
+
+def minimax(board, depth, alpha, beta, maximizing_player, player_color):
+    if board.is_checkmate():
+        return 1000 - depth if maximizing_player else -1000 + depth
+    if board.is_game_over():
+        return 0
+    if depth == 0:
+        return quiescence(board, alpha, beta, player_color)
+    if maximizing_player:
+        max_eval = -10000
+        for move in board.legal_moves:
+            board.push(move)
+            evaluation = minimax(board, depth - 1, alpha, beta, False, player_color)
+            board.pop()
+            max_eval = max(max_eval, evaluation)
+            alpha = max(alpha, evaluation)
+            if beta <= alpha:
+                break
+        return max_eval
+    else:
+        min_eval = 10000
+        for move in board.legal_moves:
+            board.push(move)
+            evaluation = minimax(board, depth - 1, alpha, beta, True, player_color)
+            board.pop()
+            min_eval = min(min_eval, evaluation)
+            beta = min(beta, evaluation)
+            if beta <= alpha:
+                break
+        return min_eval
+
 def evaluate_move_threat(board, move, player_color):
     temp_board = board.copy()
     temp_board.push(move)
@@ -195,6 +259,7 @@ def main():
             
             net_change = mat_after - mat_before
             
+            is_blunder = False
             if net_change <= -2:
                 # Check for sacrifices/trades: look one ply ahead at the player's recapture
                 if opponent_move_idx + 1 < len(moves):
@@ -202,7 +267,13 @@ def main():
                     mat_after_recapture = get_material(board_after_recapture, player_color) - get_material(board_after_recapture, opponent_color)
                     resolved_net_change = mat_after_recapture - mat_before
                     if resolved_net_change > -2:
-                        continue # It was a planned sacrifice or trade! Not a blunder.
+                        pass # It was a planned sacrifice or trade! Not a blunder.
+                    else:
+                        is_blunder = True
+                else:
+                    is_blunder = True
+            
+            if is_blunder:
                 blunder_move = moves[player_move_idx]
                 opponent_move = moves[opponent_move_idx]
                 
@@ -220,11 +291,13 @@ def main():
                 else: minor_blunders += 1
                 
                 safe_move_obj, safe_move_san = find_safe_move(board_before, player_color)
+                if not safe_move_obj:
+                    continue
                 
                 import random
                 # Find an alternative plausible move
                 legal_moves = list(board_before.legal_moves)
-                alt_move_objs = [m for m in legal_moves if m != blunder_move and (not safe_move_obj or m != safe_move_obj)]
+                alt_move_objs = [m for m in legal_moves if m != blunder_move and m != safe_move_obj]
                 random_move_obj = random.choice(alt_move_objs) if alt_move_objs else blunder_move
                 random_move_san = board_before.san(random_move_obj)
                 
@@ -255,32 +328,95 @@ def main():
                     blunder_feedback = f"❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play {move_sans[opponent_move_idx]} and win your {piece_name}! Look for a safe defense instead."
                 
                 blunder_details.append({
+                    "puzzle_type": "blunder",
                     "game_num": g_idx,
                     "opponent": opponent,
                     "date": date,
                     "url": game_url,
-                    "blunder_move": move_sans[player_move_idx],
-                    "blunder_from": chess.square_name(blunder_move.from_square),
-                    "blunder_to": chess.square_name(blunder_move.to_square),
+                    "played_move": move_sans[player_move_idx],
+                    "played_from": chess.square_name(blunder_move.from_square),
+                    "played_to": chess.square_name(blunder_move.to_square),
                     "opponent_move": move_sans[opponent_move_idx],
                     "opponent_from": chess.square_name(opponent_move.from_square),
                     "opponent_to": chess.square_name(opponent_move.to_square),
-                    "safe_move": safe_move_san if safe_move_san else "None",
-                    "safe_from": chess.square_name(safe_move_obj.from_square) if safe_move_obj else "",
-                    "safe_to": chess.square_name(safe_move_obj.to_square) if safe_move_obj else "",
-                    "random_move": random_move_san,
-                    "random_from": chess.square_name(random_move_obj.from_square),
-                    "random_to": chess.square_name(random_move_obj.to_square),
-                    "random_refutation_from": random_refutation_from,
-                    "random_refutation_to": random_refutation_to,
-                    "random_feedback": random_feedback,
+                    "correct_move": safe_move_san,
+                    "correct_from": chess.square_name(safe_move_obj.from_square),
+                    "correct_to": chess.square_name(safe_move_obj.to_square),
+                    "incorrect_move": random_move_san,
+                    "incorrect_from": chess.square_name(random_move_obj.from_square),
+                    "incorrect_to": chess.square_name(random_move_obj.to_square),
+                    "incorrect_refutation_from": random_refutation_from,
+                    "incorrect_refutation_to": random_refutation_to,
+                    "incorrect_feedback": random_feedback,
+                    "played_feedback": blunder_feedback,
+                    "correct_feedback": "🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!",
                     "description": description,
                     "fen_before": board_before.fen(),
                     "html_board": board_to_html_grid(board_before, player_color),
-                    "piece_blundered": piece_name,
-                    "blunder_feedback": blunder_feedback,
                     "value_lost": abs(net_change)
                 })
+            else:
+                actual_move = moves[player_move_idx]
+                candidates = []
+                for opt_move in board_before.legal_moves:
+                    if opt_move == actual_move:
+                        continue
+                    if board_before.is_capture(opt_move) or board_before.gives_check(opt_move) or opt_move.promotion:
+                        candidates.append(opt_move)
+                
+                if candidates:
+                    board_before.push(actual_move)
+                    actual_eval = minimax(board_before, depth=1, alpha=-10000, beta=10000, maximizing_player=False, player_color=player_color)
+                    board_before.pop()
+                    
+                    best_opt_move = None
+                    best_opt_eval = -10000
+                    
+                    for opt_move in candidates:
+                        board_before.push(opt_move)
+                        opt_eval = minimax(board_before, depth=1, alpha=-10000, beta=10000, maximizing_player=False, player_color=player_color)
+                        board_before.pop()
+                        if opt_eval > best_opt_eval:
+                            best_opt_eval = opt_eval
+                            best_opt_move = opt_move
+                            
+                    if best_opt_move and (best_opt_eval - actual_eval) >= 1.5 and best_opt_eval >= 0:
+                        opt_move_san = board_before.san(best_opt_move)
+                        
+                        import random
+                        legal_moves = list(board_before.legal_moves)
+                        alt_move_objs = [m for m in legal_moves if m != actual_move and m != best_opt_move]
+                        random_move_obj = random.choice(alt_move_objs) if alt_move_objs else actual_move
+                        random_move_san = board_before.san(random_move_obj)
+                        
+                        blunder_details.append({
+                            "puzzle_type": "missed_opportunity",
+                            "game_num": g_idx,
+                            "opponent": opponent,
+                            "date": date,
+                            "url": game_url,
+                            "played_move": move_sans[player_move_idx],
+                            "played_from": chess.square_name(actual_move.from_square),
+                            "played_to": chess.square_name(actual_move.to_square),
+                            "opponent_move": "",
+                            "opponent_from": "",
+                            "opponent_to": "",
+                            "correct_move": opt_move_san,
+                            "correct_from": chess.square_name(best_opt_move.from_square),
+                            "correct_to": chess.square_name(best_opt_move.to_square),
+                            "incorrect_move": random_move_san,
+                            "incorrect_from": chess.square_name(random_move_obj.from_square),
+                            "incorrect_to": chess.square_name(random_move_obj.to_square),
+                            "incorrect_refutation_from": "",
+                            "incorrect_refutation_to": "",
+                            "incorrect_feedback": "❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material.",
+                            "played_feedback": f"❌ <strong>Not quite!</strong> In the game, you played {move_sans[player_move_idx]}. It was safe, but you missed a strong tactical opportunity to play {opt_move_san} which wins material!",
+                            "correct_feedback": f"🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage.",
+                            "description": "Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?",
+                            "fen_before": board_before.fen(),
+                            "html_board": board_to_html_grid(board_before, player_color),
+                            "value_lost": best_opt_eval - actual_eval
+                        })
 
     print(f"Analysis complete. Found {len(blunder_details)} total material challenges in these 20 games.")
     
@@ -331,9 +467,9 @@ def main():
 
     puzzles = []
     for b in blunder_details:
-        if b["safe_move"] == "None":
+        if b.get("correct_move") == "None" or b.get("correct_move") == "":
             continue
-        p_id = f"{b['url']}_{b['blunder_move']}"
+        p_id = f"{b['url']}_{b['played_move']}"
         # Filter out if already used in a previous lesson
         if p_id in used_puzzles:
             # If we are overwriting the latest lesson, allow reusing puzzles from that same lesson
@@ -341,38 +477,38 @@ def main():
                 continue
         puzzles.append(b)
 
-    puzzles = sorted(puzzles, key=lambda x: x["value_lost"], reverse=True)[:4]
+    puzzles = sorted(puzzles, key=lambda x: x["value_lost"], reverse=True)[:10]
     
     import random
     puzzle_cards_html = []
     for idx, p in enumerate(puzzles, 1):
         options = [
             {
-                "label": p['blunder_move'], 
+                "label": p['played_move'], 
                 "type": "blunder", 
-                "from": p['blunder_from'], 
-                "to": p['blunder_to'],
+                "from": p['played_from'], 
+                "to": p['played_to'],
                 "refutation_from": p.get('opponent_from', ''),
                 "refutation_to": p.get('opponent_to', ''),
-                "feedback": p['blunder_feedback']
+                "feedback": p['played_feedback']
             },
             {
-                "label": p['safe_move'], 
+                "label": p['correct_move'], 
                 "type": "correct", 
-                "from": p['safe_from'], 
-                "to": p['safe_to'],
+                "from": p['correct_from'], 
+                "to": p['correct_to'],
                 "refutation_from": '',
                 "refutation_to": '',
-                "feedback": "🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
+                "feedback": p['correct_feedback']
             },
             {
-                "label": p['random_move'], 
+                "label": p['incorrect_move'], 
                 "type": "blunder", 
-                "from": p['random_from'], 
-                "to": p['random_to'],
-                "refutation_from": p.get('random_refutation_from', ''),
-                "refutation_to": p.get('random_refutation_to', ''),
-                "feedback": p['random_feedback']
+                "from": p['incorrect_from'], 
+                "to": p['incorrect_to'],
+                "refutation_from": p.get('incorrect_refutation_from', ''),
+                "refutation_to": p.get('incorrect_refutation_to', ''),
+                "feedback": p['incorrect_feedback']
             }
         ]
         random.shuffle(options)
@@ -385,16 +521,25 @@ def main():
                             <button class="preview-btn" onclick="togglePreview(this, {idx}, '{opt['from']}', '{opt['to']}', {i+1})" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p{idx}-o{i+1}" style="flex: 1;"
                                  data-feedback="{opt['feedback'].replace('\"', '&quot;')}"
-                                 onclick="checkPuzzle({idx}, '{opt['type']}', {i+1}, '{opt['from']}', '{opt['to']}', '{opt['refutation_from']}', '{opt['refutation_to']}')">
+                                  onclick="checkPuzzle({idx}, '{opt['type']}', {i+1}, '{opt['from']}', '{opt['to']}', '{opt['refutation_from']}', '{opt['refutation_to']}')">
                                 {letters[i]}) {opt['label']}
                             </div>
                         </div>"""
 
+        if p.get("puzzle_type") == "missed_opportunity":
+            badge_text = f"Opportunity {idx}: vs {p['opponent']} ({p['date']})"
+            title_text = "Tactical Opportunity Missed in Your Match"
+            prompt_instruction = "What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move."
+        else:
+            badge_text = f"Safety Challenge {idx}: vs {p['opponent']} ({p['date']})"
+            title_text = "Saved Position from Your Match"
+            prompt_instruction = "What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move."
+
         puzzle_cards_html.append(f"""
         <!-- Puzzle {idx} -->
         <div class="card">
-            <span class="badge">Challenge {idx}: vs {p['opponent']} ({p['date']})</span>
-            <h2>Saved Position from Your Match</h2>
+            <span class="badge">{badge_text}</span>
+            <h2>{title_text}</h2>
             <p>{p['description']}</p>
             
             <div class="chess-grid-container">
@@ -403,7 +548,7 @@ def main():
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move.</p>
+                    <p>{prompt_instruction}</p>
                     
                     <div class="quiz-container">
 {quiz_options_html}
@@ -1126,7 +1271,7 @@ def main():
             for line_str in lines_to_keep:
                 uf.write(line_str + "\n")
             for p in puzzles:
-                p_id = f"{p['url']}_{p['blunder_move']}"
+                p_id = f"{p['url']}_{p['played_move']}"
                 uf.write(f"{lesson_num:04d}_{p_id}\n")
     except Exception as e:
         print(f"Warning: could not write to used_puzzles.txt: {e}")
