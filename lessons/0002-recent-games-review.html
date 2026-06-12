@@ -1,9 +1,10 @@
+<!-- LESSON_METADATA: {"num": 2, "wins": 12, "losses": 8, "rating": 347, "challenges": 9} -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson 2: Personalized Game Review & Progress Dashboard</title>
+    <title>Lesson 2: Personalized Game Review</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -28,80 +29,62 @@
             line-height: 1.6;
         }
 
-        header {
+        .app-header {
             background: linear-gradient(135deg, #1e1b4b, #1d4ed8);
-            padding: 3rem 2rem;
-            text-align: center;
-            border-bottom: 4px solid var(--accent-primary);
-            position: relative;
-            overflow: hidden;
+            padding: 0.8rem 1.5rem;
+            border-bottom: 3px solid var(--accent-primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        header::after {
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            left: -50px;
-            width: 200px;
-            height: 200px;
-            background: var(--accent-secondary);
-            filter: blur(120px);
-            opacity: 0.3;
-            pointer-events: none;
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
         }
 
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            background: var(--accent-primary);
-            filter: blur(120px);
-            opacity: 0.3;
-            pointer-events: none;
-        }
-
-        .header-tag {
-            font-family: 'Outfit', sans-serif;
-            text-transform: uppercase;
-            font-weight: 800;
-            font-size: 0.9rem;
-            letter-spacing: 0.15rem;
+        .back-link {
             color: #60a5fa;
-            margin-bottom: 0.5rem;
-            display: inline-block;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: color 0.2s ease;
         }
 
-        h1 {
+        .back-link:hover {
+            color: var(--accent-primary);
+        }
+
+        .header-title-section h1 {
             font-family: 'Outfit', sans-serif;
-            font-size: 2.8rem;
+            font-size: 1.3rem;
             font-weight: 800;
-            margin: 0.5rem 0;
+            margin: 0;
             background: linear-gradient(to right, #60a5fa, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .subtitle {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0.5rem auto 0 auto;
-        }
-
         main {
             max-width: 900px;
-            margin: 3rem auto;
-            padding: 0 1.5rem;
+            margin: 2rem auto;
+            padding: 0 1rem;
         }
 
         .card {
             background-color: var(--card-bg);
             border-radius: 16px;
-            padding: 2.5rem;
-            margin-bottom: 2.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -114,7 +97,7 @@
 
         h2 {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
             margin-top: 0;
             color: #e2e8f0;
@@ -122,45 +105,11 @@
             padding-left: 0.75rem;
         }
 
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .stat-card {
-            background: rgba(15, 23, 42, 0.4);
-            padding: 1.25rem;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .stat-val {
-            font-size: 2.2rem;
-            font-weight: 800;
-            font-family: 'Outfit', sans-serif;
-            color: var(--accent-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-val.win-stat {
-            color: var(--success);
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05rem;
-        }
-
         .chess-grid-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
-            align-items: flex-start;
+            gap: 1.5rem;
+            align-items: center;
             margin: 1rem 0;
         }
 
@@ -182,10 +131,34 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-family: 'Segoe UI Symbol', sans-serif;
             position: relative;
-            aspect-ratio: 1; /* Keep perfect square aspect ratio to prevent empty rows from collapsing */
+            aspect-ratio: 1;
+        }
+
+        .coord {
+            position: absolute;
+            font-weight: 800;
+            font-size: 0.6rem;
+            line-height: 1;
+            user-select: none;
+            pointer-events: none;
+            font-family: 'Outfit', sans-serif;
+        }
+        .coord-rank {
+            top: 2px;
+            left: 3px;
+        }
+        .coord-file {
+            bottom: 2px;
+            right: 3px;
+        }
+        .square.light .coord {
+            color: var(--board-dark);
+        }
+        .square.dark .coord {
+            color: var(--board-light);
         }
 
         .square.threat-source {
@@ -204,7 +177,7 @@
         .preview-btn {
             background: var(--card-bg);
             border: 2px solid #334155;
-            padding: 0.75rem;
+            padding: 0.6rem;
             border-radius: 8px;
             cursor: pointer;
             color: white;
@@ -234,8 +207,8 @@
 
         .square.highlighted::after {
             content: '';
-            width: 25px;
-            height: 25px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             background: rgba(139, 92, 246, 0.6);
             position: absolute;
@@ -271,12 +244,13 @@
         .quiz-option {
             background: var(--card-bg);
             border: 2px solid #334155;
-            padding: 0.75rem;
+            padding: 0.6rem 0.8rem;
             border-radius: 8px;
             margin-bottom: 0;
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 600;
+            font-size: 0.95rem;
         }
 
         .quiz-option:hover {
@@ -302,6 +276,7 @@
             padding: 0.75rem;
             border-radius: 6px;
             display: none;
+            font-size: 0.95rem;
         }
 
         .feedback-msg.success {
@@ -329,121 +304,75 @@
             margin-bottom: 0.5rem;
         }
 
-        /* Chart Styling */
-        .chart-container {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            position: relative;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .chart-title {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #60a5fa;
-        }
-
-        .chart-goal {
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            color: #eab308;
-            font-size: 0.9rem;
-        }
-
-        .chart-svg {
-            width: 100%;
-            height: auto;
-            overflow: visible;
-        }
-
         footer {
             text-align: center;
             padding: 2rem 0;
             color: var(--text-muted);
             font-size: 0.9rem;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            margin-top: 5rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }
+            .card {
+                padding: 1.25rem;
+                border-radius: 12px;
+                margin-bottom: 1.25rem;
+            }
+            h2 {
+                font-size: 1.3rem;
+            }
+            .chess-board {
+                max-width: 100%;
+                border-width: 4px;
+            }
+            .square {
+                font-size: 1.5rem;
+            }
+            .square.highlighted::after {
+                width: 10px;
+                height: 10px;
+            }
+            .quiz-option {
+                padding: 0.5rem 0.7rem;
+                font-size: 0.9rem;
+            }
+            .preview-btn {
+                padding: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-tag">Progress Review</div>
-        <h1>Your Personalized Chess Board Room</h1>
-        <p class="subtitle">Welcome back! Let's take a look at your daily progress and practice some shield patterns.</p>
+    <header class="app-header">
+        <div class="header-content">
+            <a href="../index.html" class="back-link">
+                <span>←</span> Dashboard
+            </a>
+            <div class="header-title-section">
+                <h1>Lesson 2: Personalized Game Review</h1>
+            </div>
+            <div class="header-stats-tag">
+                <span class="badge">Lesson 2</span>
+            </div>
+        </div>
     </header>
 
     <main>
-
-        <!-- Stats Overview -->
-        <section class="card">
-            <span class="badge">Activity & Performance Overview</span>
-            <h2>Welcome Back, Champion!</h2>
-            <p>
-                Fantastic job playing chess daily! Let's check in on how you've been doing. Every chess player—even grandmasters—works on keeping their pieces safe. Here is a look at your recent numbers:
-            </p>
-            
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-val win-stat">12</div>
-                    <div class="stat-label">Wins</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-val" style="color: var(--text-main);">8</div>
-                    <div class="stat-label">Losses</div>
-                </div>
-                <div class="stat-card" style="border-color: rgba(96,165,250,0.2);">
-                    <div class="stat-val" style="color: #60a5fa;">0</div>
-                    <div class="stat-label">New Matches</div>
-                </div>
-                <div class="stat-card" style="border-color: rgba(234,179,8,0.2);">
-                    <div class="stat-val" style="color: #eab308;">347</div>
-                    <div class="stat-label">Current Rating</div>
-                </div>
-            </div>
-            
-            <p>
-                <em>Tip: We found 0 new games since your last session! Let's put your piece safety skills to the test with custom puzzles from your actual matches.</em>
-            </p>
-        </section>
-
-        <!-- Progress Chart Card -->
-        <section class="card">
-            <span class="badge">Target: 1000 Rating</span>
-            <h2>Your Rating Progress Climb</h2>
-            <p>Here is your rating trajectory showing how close you are to reaching the 1000 milestone! Every game played is a step forward.</p>
-            
-            <div class="chart-container">
-                <div class="chart-header">
-                    <span class="chart-title">Rating Trajectory</span>
-                    <span class="chart-goal">Goal: 1000 🏆</span>
-                </div>
-                <svg viewBox="0 0 800 250" class="chart-svg" id="rating-chart"></svg>
-            </div>
-        </section>
-
-        <!-- Dynamic Puzzle Cards -->
-        
         <!-- Puzzle 1 -->
         <div class="card">
-            <span class="badge">Opportunity 1: vs Hilcgpp (2026.06.07)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
+            <span class="badge">Opp 1 vs Hilcgpp</span>
+            <h2>Tactical Opportunity</h2>
+            <p>Find the tactical shot that wins material or gains a major advantage.</p>
             
             <div class="chess-grid-container">
                 <div class="chess-board" id="board-1">
-                    <div class="square light" data-square="a8"></div>
+                    <div class="square light" data-square="a8"><span class="coord coord-rank">8</span></div>
 <div class="square dark" data-square="b8"></div>
 <div class="square light" data-square="c8"></div>
 <div class="square dark" data-square="d8"></div>
@@ -451,7 +380,7 @@
 <div class="square dark" data-square="f8"></div>
 <div class="square light" data-square="g8"></div>
 <div class="square dark" data-square="h8"></div>
-<div class="square dark" data-square="a7"><span class="piece white">♟</span></div>
+<div class="square dark" data-square="a7"><span class="coord coord-rank">7</span><span class="piece white">♟</span></div>
 <div class="square light" data-square="b7"></div>
 <div class="square dark" data-square="c7"><span class="piece white">♚</span></div>
 <div class="square light" data-square="d7"></div>
@@ -459,7 +388,7 @@
 <div class="square light" data-square="f7"></div>
 <div class="square dark" data-square="g7"></div>
 <div class="square light" data-square="h7"></div>
-<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="a6"><span class="coord coord-rank">6</span></div>
 <div class="square dark" data-square="b6"></div>
 <div class="square light" data-square="c6"></div>
 <div class="square dark" data-square="d6"></div>
@@ -467,7 +396,7 @@
 <div class="square dark" data-square="f6"></div>
 <div class="square light" data-square="g6"></div>
 <div class="square dark" data-square="h6"></div>
-<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="a5"><span class="coord coord-rank">5</span></div>
 <div class="square light" data-square="b5"></div>
 <div class="square dark" data-square="c5"></div>
 <div class="square light" data-square="d5"></div>
@@ -475,7 +404,7 @@
 <div class="square light" data-square="f5"></div>
 <div class="square dark" data-square="g5"><span class="piece black">♟</span></div>
 <div class="square light" data-square="h5"></div>
-<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="a4"><span class="coord coord-rank">4</span></div>
 <div class="square dark" data-square="b4"></div>
 <div class="square light" data-square="c4"></div>
 <div class="square dark" data-square="d4"></div>
@@ -483,7 +412,7 @@
 <div class="square dark" data-square="f4"></div>
 <div class="square light" data-square="g4"><span class="piece black">♚</span></div>
 <div class="square dark" data-square="h4"></div>
-<div class="square dark" data-square="a3"></div>
+<div class="square dark" data-square="a3"><span class="coord coord-rank">3</span></div>
 <div class="square light" data-square="b3"></div>
 <div class="square dark" data-square="c3"></div>
 <div class="square light" data-square="d3"></div>
@@ -491,7 +420,7 @@
 <div class="square light" data-square="f3"></div>
 <div class="square dark" data-square="g3"><span class="piece black">♟</span></div>
 <div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"></div>
+<div class="square light" data-square="a2"><span class="coord coord-rank">2</span></div>
 <div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="c2"></div>
 <div class="square dark" data-square="d2"></div>
@@ -499,19 +428,17 @@
 <div class="square dark" data-square="f2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="g2"></div>
 <div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"></div>
-<div class="square light" data-square="d1"></div>
-<div class="square dark" data-square="e1"><span class="piece white">♜</span></div>
-<div class="square light" data-square="f1"></div>
-<div class="square dark" data-square="g1"></div>
-<div class="square light" data-square="h1"></div>
+<div class="square dark" data-square="a1"><span class="coord coord-rank">1</span><span class="coord coord-file">a</span></div>
+<div class="square light" data-square="b1"><span class="coord coord-file">b</span></div>
+<div class="square dark" data-square="c1"><span class="coord coord-file">c</span></div>
+<div class="square light" data-square="d1"><span class="coord coord-file">d</span></div>
+<div class="square dark" data-square="e1"><span class="coord coord-file">e</span><span class="piece white">♜</span></div>
+<div class="square light" data-square="f1"><span class="coord coord-file">f</span></div>
+<div class="square dark" data-square="g1"><span class="coord coord-file">g</span></div>
+<div class="square light" data-square="h1"><span class="coord coord-file">h</span></div>
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
@@ -531,11 +458,11 @@
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 1, 'e1', 'e8', 3)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 1, 'c7', 'c6', 3)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p1-o3" style="flex: 1;"
                                  data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(1, 'blunder', 3, 'e1', 'e8', '', '')">
-                                C) Re8
+                                  onclick="checkPuzzle(1, 'blunder', 3, 'c7', 'c6', '', '')">
+                                C) Kc6
                             </div>
                         </div>
                         
@@ -545,15 +472,19 @@
             </div>
         </div>
         
-        <!-- Puzzle 2 -->
+        
+
+
+
+<!-- Puzzle 2 -->
         <div class="card">
-            <span class="badge">Opportunity 2: vs Mouad4321 (2026.06.10)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
+            <span class="badge">Opp 2 vs Mouad4321</span>
+            <h2>Tactical Opportunity</h2>
+            <p>Find the tactical shot that wins material or gains a major advantage.</p>
             
             <div class="chess-grid-container">
                 <div class="chess-board" id="board-2">
-                    <div class="square light" data-square="a8"><span class="piece black">♜</span></div>
+                    <div class="square light" data-square="a8"><span class="coord coord-rank">8</span><span class="piece black">♜</span></div>
 <div class="square dark" data-square="b8"></div>
 <div class="square light" data-square="c8"></div>
 <div class="square dark" data-square="d8"></div>
@@ -561,7 +492,7 @@
 <div class="square dark" data-square="f8"></div>
 <div class="square light" data-square="g8"></div>
 <div class="square dark" data-square="h8"><span class="piece black">♜</span></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a7"><span class="coord coord-rank">7</span><span class="piece black">♟</span></div>
 <div class="square light" data-square="b7"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="d7"></div>
@@ -569,7 +500,7 @@
 <div class="square light" data-square="f7"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="g7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="h7"><span class="piece black">♟</span></div>
-<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="a6"><span class="coord coord-rank">6</span></div>
 <div class="square dark" data-square="b6"></div>
 <div class="square light" data-square="c6"><span class="piece black">♞</span></div>
 <div class="square dark" data-square="d6"><span class="piece black">♛</span></div>
@@ -577,7 +508,7 @@
 <div class="square dark" data-square="f6"></div>
 <div class="square light" data-square="g6"></div>
 <div class="square dark" data-square="h6"></div>
-<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="a5"><span class="coord coord-rank">5</span></div>
 <div class="square light" data-square="b5"></div>
 <div class="square dark" data-square="c5"></div>
 <div class="square light" data-square="d5"></div>
@@ -585,7 +516,7 @@
 <div class="square light" data-square="f5"></div>
 <div class="square dark" data-square="g5"></div>
 <div class="square light" data-square="h5"></div>
-<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="a4"><span class="coord coord-rank">4</span></div>
 <div class="square dark" data-square="b4"></div>
 <div class="square light" data-square="c4"><span class="piece white">♝</span></div>
 <div class="square dark" data-square="d4"><span class="piece white">♟</span></div>
@@ -593,7 +524,7 @@
 <div class="square dark" data-square="f4"></div>
 <div class="square light" data-square="g4"></div>
 <div class="square dark" data-square="h4"></div>
-<div class="square dark" data-square="a3"></div>
+<div class="square dark" data-square="a3"><span class="coord coord-rank">3</span></div>
 <div class="square light" data-square="b3"></div>
 <div class="square dark" data-square="c3"></div>
 <div class="square light" data-square="d3"></div>
@@ -601,7 +532,7 @@
 <div class="square light" data-square="f3"><span class="piece black">♝</span></div>
 <div class="square dark" data-square="g3"></div>
 <div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"><span class="piece white">♟</span></div>
+<div class="square light" data-square="a2"><span class="coord coord-rank">2</span><span class="piece white">♟</span></div>
 <div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="c2"></div>
 <div class="square dark" data-square="d2"></div>
@@ -609,19 +540,17 @@
 <div class="square dark" data-square="f2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="g2"><span class="piece white">♟</span></div>
 <div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"><span class="piece white">♜</span></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"></div>
-<div class="square light" data-square="d1"><span class="piece white">♛</span></div>
-<div class="square dark" data-square="e1"></div>
-<div class="square light" data-square="f1"><span class="piece white">♜</span></div>
-<div class="square dark" data-square="g1"><span class="piece white">♚</span></div>
-<div class="square light" data-square="h1"></div>
+<div class="square dark" data-square="a1"><span class="coord coord-rank">1</span><span class="coord coord-file">a</span><span class="piece white">♜</span></div>
+<div class="square light" data-square="b1"><span class="coord coord-file">b</span></div>
+<div class="square dark" data-square="c1"><span class="coord coord-file">c</span></div>
+<div class="square light" data-square="d1"><span class="coord coord-file">d</span><span class="piece white">♛</span></div>
+<div class="square dark" data-square="e1"><span class="coord coord-file">e</span></div>
+<div class="square light" data-square="f1"><span class="coord coord-file">f</span><span class="piece white">♜</span></div>
+<div class="square dark" data-square="g1"><span class="coord coord-file">g</span><span class="piece white">♚</span></div>
+<div class="square light" data-square="h1"><span class="coord coord-file">h</span></div>
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
@@ -641,11 +570,11 @@
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 2, 'd1', 'c2', 3)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 2, 'a2', 'a3', 3)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p2-o3" style="flex: 1;"
                                  data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(2, 'blunder', 3, 'd1', 'c2', '', '')">
-                                C) Qc2
+                                  onclick="checkPuzzle(2, 'blunder', 3, 'a2', 'a3', '', '')">
+                                C) a3
                             </div>
                         </div>
                         
@@ -655,15 +584,19 @@
             </div>
         </div>
         
-        <!-- Puzzle 3 -->
+        
+
+
+
+<!-- Puzzle 3 -->
         <div class="card">
-            <span class="badge">Opportunity 3: vs adithyan2727 (2026.06.06)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
+            <span class="badge">Opp 3 vs adithyan2727</span>
+            <h2>Tactical Opportunity</h2>
+            <p>Find the tactical shot that wins material or gains a major advantage.</p>
             
             <div class="chess-grid-container">
                 <div class="chess-board" id="board-3">
-                    <div class="square light" data-square="a8"><span class="piece black">♜</span></div>
+                    <div class="square light" data-square="a8"><span class="coord coord-rank">8</span><span class="piece black">♜</span></div>
 <div class="square dark" data-square="b8"></div>
 <div class="square light" data-square="c8"></div>
 <div class="square dark" data-square="d8"></div>
@@ -671,7 +604,7 @@
 <div class="square dark" data-square="f8"></div>
 <div class="square light" data-square="g8"></div>
 <div class="square dark" data-square="h8"></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a7"><span class="coord coord-rank">7</span><span class="piece black">♟</span></div>
 <div class="square light" data-square="b7"></div>
 <div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="d7"><span class="piece white">♜</span></div>
@@ -679,7 +612,7 @@
 <div class="square light" data-square="f7"></div>
 <div class="square dark" data-square="g7"></div>
 <div class="square light" data-square="h7"></div>
-<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="a6"><span class="coord coord-rank">6</span></div>
 <div class="square dark" data-square="b6"></div>
 <div class="square light" data-square="c6"></div>
 <div class="square dark" data-square="d6"></div>
@@ -687,7 +620,7 @@
 <div class="square dark" data-square="f6"></div>
 <div class="square light" data-square="g6"></div>
 <div class="square dark" data-square="h6"></div>
-<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="a5"><span class="coord coord-rank">5</span></div>
 <div class="square light" data-square="b5"></div>
 <div class="square dark" data-square="c5"></div>
 <div class="square light" data-square="d5"></div>
@@ -695,7 +628,7 @@
 <div class="square light" data-square="f5"></div>
 <div class="square dark" data-square="g5"></div>
 <div class="square light" data-square="h5"></div>
-<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="a4"><span class="coord coord-rank">4</span></div>
 <div class="square dark" data-square="b4"></div>
 <div class="square light" data-square="c4"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="d4"></div>
@@ -703,7 +636,7 @@
 <div class="square dark" data-square="f4"></div>
 <div class="square light" data-square="g4"></div>
 <div class="square dark" data-square="h4"><span class="piece white">♝</span></div>
-<div class="square dark" data-square="a3"><span class="piece white">♟</span></div>
+<div class="square dark" data-square="a3"><span class="coord coord-rank">3</span><span class="piece white">♟</span></div>
 <div class="square light" data-square="b3"></div>
 <div class="square dark" data-square="c3"><span class="piece white">♟</span></div>
 <div class="square light" data-square="d3"></div>
@@ -711,7 +644,7 @@
 <div class="square light" data-square="f3"><span class="piece black">♚</span></div>
 <div class="square dark" data-square="g3"></div>
 <div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"></div>
+<div class="square light" data-square="a2"><span class="coord coord-rank">2</span></div>
 <div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="c2"><span class="piece white">♟</span></div>
 <div class="square dark" data-square="d2"></div>
@@ -719,43 +652,41 @@
 <div class="square dark" data-square="f2"></div>
 <div class="square light" data-square="g2"><span class="piece black">♜</span></div>
 <div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"><span class="piece white">♚</span></div>
-<div class="square light" data-square="d1"></div>
-<div class="square dark" data-square="e1"></div>
-<div class="square light" data-square="f1"></div>
-<div class="square dark" data-square="g1"></div>
-<div class="square light" data-square="h1"><span class="piece white">♜</span></div>
+<div class="square dark" data-square="a1"><span class="coord coord-rank">1</span><span class="coord coord-file">a</span></div>
+<div class="square light" data-square="b1"><span class="coord coord-file">b</span></div>
+<div class="square dark" data-square="c1"><span class="coord coord-file">c</span><span class="piece white">♚</span></div>
+<div class="square light" data-square="d1"><span class="coord coord-file">d</span></div>
+<div class="square dark" data-square="e1"><span class="coord coord-file">e</span></div>
+<div class="square light" data-square="f1"><span class="coord coord-file">f</span></div>
+<div class="square dark" data-square="g1"><span class="coord coord-file">g</span></div>
+<div class="square light" data-square="h1"><span class="coord coord-file">h</span><span class="piece white">♜</span></div>
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 3, 'e5', 'h8', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 3, 'e5', 'd5', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p3-o1" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(3, 'blunder', 1, 'e5', 'h8', '', '')">
-                                A) Qh8
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 3, 'd7', 'f7', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p3-o2" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played Rf7+. It was safe, but you missed a strong tactical opportunity to play Qd5+ which wins material!"
-                                  onclick="checkPuzzle(3, 'blunder', 2, 'd7', 'f7', '', '')">
-                                B) Rf7+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 3, 'e5', 'd5', 3)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p3-o3" style="flex: 1;"
                                  data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
-                                  onclick="checkPuzzle(3, 'correct', 3, 'e5', 'd5', '', '')">
-                                C) Qd5+
+                                  onclick="checkPuzzle(3, 'correct', 1, 'e5', 'd5', '', '')">
+                                A) Qd5+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 3, 'h4', 'd8', 2)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p3-o2" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
+                                  onclick="checkPuzzle(3, 'blunder', 2, 'h4', 'd8', '', '')">
+                                B) Bd8
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 3, 'd7', 'f7', 3)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p3-o3" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played Rf7+. It was safe, but you missed a strong tactical opportunity to play Qd5+ which wins material!"
+                                  onclick="checkPuzzle(3, 'blunder', 3, 'd7', 'f7', '', '')">
+                                C) Rf7+
                             </div>
                         </div>
                         
@@ -765,15 +696,19 @@
             </div>
         </div>
         
-        <!-- Puzzle 4 -->
+        
+
+
+
+<!-- Puzzle 4 -->
         <div class="card">
-            <span class="badge">Opportunity 4: vs adithyan2727 (2026.06.06)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
+            <span class="badge">Opp 4 vs adithyan2727</span>
+            <h2>Tactical Opportunity</h2>
+            <p>Find the tactical shot that wins material or gains a major advantage.</p>
             
             <div class="chess-grid-container">
                 <div class="chess-board" id="board-4">
-                    <div class="square light" data-square="a8"><span class="piece black">♜</span></div>
+                    <div class="square light" data-square="a8"><span class="coord coord-rank">8</span><span class="piece black">♜</span></div>
 <div class="square dark" data-square="b8"></div>
 <div class="square light" data-square="c8"></div>
 <div class="square dark" data-square="d8"></div>
@@ -781,7 +716,7 @@
 <div class="square dark" data-square="f8"></div>
 <div class="square light" data-square="g8"></div>
 <div class="square dark" data-square="h8"></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a7"><span class="coord coord-rank">7</span><span class="piece black">♟</span></div>
 <div class="square light" data-square="b7"></div>
 <div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="d7"></div>
@@ -789,7 +724,7 @@
 <div class="square light" data-square="f7"><span class="piece white">♜</span></div>
 <div class="square dark" data-square="g7"></div>
 <div class="square light" data-square="h7"></div>
-<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="a6"><span class="coord coord-rank">6</span></div>
 <div class="square dark" data-square="b6"></div>
 <div class="square light" data-square="c6"></div>
 <div class="square dark" data-square="d6"></div>
@@ -797,7 +732,7 @@
 <div class="square dark" data-square="f6"></div>
 <div class="square light" data-square="g6"></div>
 <div class="square dark" data-square="h6"></div>
-<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="a5"><span class="coord coord-rank">5</span></div>
 <div class="square light" data-square="b5"></div>
 <div class="square dark" data-square="c5"></div>
 <div class="square light" data-square="d5"></div>
@@ -805,7 +740,7 @@
 <div class="square light" data-square="f5"></div>
 <div class="square dark" data-square="g5"></div>
 <div class="square light" data-square="h5"></div>
-<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="a4"><span class="coord coord-rank">4</span></div>
 <div class="square dark" data-square="b4"></div>
 <div class="square light" data-square="c4"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="d4"></div>
@@ -813,7 +748,7 @@
 <div class="square dark" data-square="f4"></div>
 <div class="square light" data-square="g4"><span class="piece black">♚</span></div>
 <div class="square dark" data-square="h4"><span class="piece white">♝</span></div>
-<div class="square dark" data-square="a3"><span class="piece white">♟</span></div>
+<div class="square dark" data-square="a3"><span class="coord coord-rank">3</span><span class="piece white">♟</span></div>
 <div class="square light" data-square="b3"></div>
 <div class="square dark" data-square="c3"><span class="piece white">♟</span></div>
 <div class="square light" data-square="d3"></div>
@@ -821,7 +756,7 @@
 <div class="square light" data-square="f3"></div>
 <div class="square dark" data-square="g3"></div>
 <div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"></div>
+<div class="square light" data-square="a2"><span class="coord coord-rank">2</span></div>
 <div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="c2"><span class="piece white">♟</span></div>
 <div class="square dark" data-square="d2"></div>
@@ -829,43 +764,41 @@
 <div class="square dark" data-square="f2"></div>
 <div class="square light" data-square="g2"><span class="piece black">♜</span></div>
 <div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"><span class="piece white">♚</span></div>
-<div class="square light" data-square="d1"></div>
-<div class="square dark" data-square="e1"></div>
-<div class="square light" data-square="f1"></div>
-<div class="square dark" data-square="g1"></div>
-<div class="square light" data-square="h1"><span class="piece white">♜</span></div>
+<div class="square dark" data-square="a1"><span class="coord coord-rank">1</span><span class="coord coord-file">a</span></div>
+<div class="square light" data-square="b1"><span class="coord coord-file">b</span></div>
+<div class="square dark" data-square="c1"><span class="coord coord-file">c</span><span class="piece white">♚</span></div>
+<div class="square light" data-square="d1"><span class="coord coord-file">d</span></div>
+<div class="square dark" data-square="e1"><span class="coord coord-file">e</span></div>
+<div class="square light" data-square="f1"><span class="coord coord-file">f</span></div>
+<div class="square dark" data-square="g1"><span class="coord coord-file">g</span></div>
+<div class="square light" data-square="h1"><span class="coord coord-file">h</span><span class="piece white">♜</span></div>
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e5', 'f6', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e5', 'g5', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p4-o1" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(4, 'blunder', 1, 'e5', 'f6', '', '')">
-                                A) Qf6
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e5', 'g5', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p4-o2" style="flex: 1;"
                                  data-feedback="❌ <strong>Not quite!</strong> In the game, you played Qg5+. It was safe, but you missed a strong tactical opportunity to play Qe4+ which wins material!"
-                                  onclick="checkPuzzle(4, 'blunder', 2, 'e5', 'g5', '', '')">
-                                B) Qg5+
+                                  onclick="checkPuzzle(4, 'blunder', 1, 'e5', 'g5', '', '')">
+                                A) Qg5+
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e5', 'e4', 3)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p4-o3" style="flex: 1;"
+                            <button class="preview-btn" onclick="togglePreview(this, 4, 'e5', 'e4', 2)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p4-o2" style="flex: 1;"
                                  data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
-                                  onclick="checkPuzzle(4, 'correct', 3, 'e5', 'e4', '', '')">
-                                C) Qe4+
+                                  onclick="checkPuzzle(4, 'correct', 2, 'e5', 'e4', '', '')">
+                                B) Qe4+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 4, 'h4', 'f6', 3)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p4-o3" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
+                                  onclick="checkPuzzle(4, 'blunder', 3, 'h4', 'f6', '', '')">
+                                C) Bf6
                             </div>
                         </div>
                         
@@ -875,15 +808,19 @@
             </div>
         </div>
         
-        <!-- Puzzle 5 -->
+        
+
+
+
+<!-- Puzzle 5 -->
         <div class="card">
-            <span class="badge">Opportunity 5: vs Etibar134 (2026.06.10)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
+            <span class="badge">Opp 5 vs Etibar134</span>
+            <h2>Tactical Opportunity</h2>
+            <p>Find the tactical shot that wins material or gains a major advantage.</p>
             
             <div class="chess-grid-container">
                 <div class="chess-board" id="board-5">
-                    <div class="square light" data-square="a8"><span class="piece black">♜</span></div>
+                    <div class="square light" data-square="a8"><span class="coord coord-rank">8</span><span class="piece black">♜</span></div>
 <div class="square dark" data-square="b8"><span class="piece black">♞</span></div>
 <div class="square light" data-square="c8"></div>
 <div class="square dark" data-square="d8"></div>
@@ -891,7 +828,7 @@
 <div class="square dark" data-square="f8"><span class="piece black">♝</span></div>
 <div class="square light" data-square="g8"><span class="piece black">♞</span></div>
 <div class="square dark" data-square="h8"><span class="piece black">♜</span></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a7"><span class="coord coord-rank">7</span><span class="piece black">♟</span></div>
 <div class="square light" data-square="b7"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="c7"></div>
 <div class="square light" data-square="d7"><span class="piece black">♚</span></div>
@@ -899,7 +836,7 @@
 <div class="square light" data-square="f7"></div>
 <div class="square dark" data-square="g7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="h7"><span class="piece black">♟</span></div>
-<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="a6"><span class="coord coord-rank">6</span></div>
 <div class="square dark" data-square="b6"></div>
 <div class="square light" data-square="c6"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="d6"></div>
@@ -907,7 +844,7 @@
 <div class="square dark" data-square="f6"></div>
 <div class="square light" data-square="g6"></div>
 <div class="square dark" data-square="h6"></div>
-<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="a5"><span class="coord coord-rank">5</span></div>
 <div class="square light" data-square="b5"></div>
 <div class="square dark" data-square="c5"></div>
 <div class="square light" data-square="d5"><span class="piece white">♞</span></div>
@@ -915,7 +852,7 @@
 <div class="square light" data-square="f5"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="g5"></div>
 <div class="square light" data-square="h5"></div>
-<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="a4"><span class="coord coord-rank">4</span></div>
 <div class="square dark" data-square="b4"></div>
 <div class="square light" data-square="c4"></div>
 <div class="square dark" data-square="d4"></div>
@@ -923,7 +860,7 @@
 <div class="square dark" data-square="f4"></div>
 <div class="square light" data-square="g4"></div>
 <div class="square dark" data-square="h4"><span class="piece white">♞</span></div>
-<div class="square dark" data-square="a3"></div>
+<div class="square dark" data-square="a3"><span class="coord coord-rank">3</span></div>
 <div class="square light" data-square="b3"></div>
 <div class="square dark" data-square="c3"></div>
 <div class="square light" data-square="d3"></div>
@@ -931,7 +868,7 @@
 <div class="square light" data-square="f3"></div>
 <div class="square dark" data-square="g3"></div>
 <div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"><span class="piece white">♟</span></div>
+<div class="square light" data-square="a2"><span class="coord coord-rank">2</span><span class="piece white">♟</span></div>
 <div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="c2"><span class="piece white">♟</span></div>
 <div class="square dark" data-square="d2"></div>
@@ -939,43 +876,41 @@
 <div class="square dark" data-square="f2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="g2"><span class="piece white">♟</span></div>
 <div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"><span class="piece white">♜</span></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"><span class="piece white">♝</span></div>
-<div class="square light" data-square="d1"><span class="piece white">♛</span></div>
-<div class="square dark" data-square="e1"><span class="piece white">♚</span></div>
-<div class="square light" data-square="f1"></div>
-<div class="square dark" data-square="g1"></div>
-<div class="square light" data-square="h1"><span class="piece white">♜</span></div>
+<div class="square dark" data-square="a1"><span class="coord coord-rank">1</span><span class="coord coord-file">a</span><span class="piece white">♜</span></div>
+<div class="square light" data-square="b1"><span class="coord coord-file">b</span></div>
+<div class="square dark" data-square="c1"><span class="coord coord-file">c</span><span class="piece white">♝</span></div>
+<div class="square light" data-square="d1"><span class="coord coord-file">d</span><span class="piece white">♛</span></div>
+<div class="square dark" data-square="e1"><span class="coord coord-file">e</span><span class="piece white">♚</span></div>
+<div class="square light" data-square="f1"><span class="coord coord-file">f</span></div>
+<div class="square dark" data-square="g1"><span class="coord coord-file">g</span></div>
+<div class="square light" data-square="h1"><span class="coord coord-file">h</span><span class="piece white">♜</span></div>
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 5, 'd5', 'b6', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 5, 'd5', 'c3', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p5-o1" style="flex: 1;"
-                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
-                                  onclick="checkPuzzle(5, 'correct', 1, 'd5', 'b6', '', '')">
-                                A) Nb6+
+                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played Nc3+. It was safe, but you missed a strong tactical opportunity to play Nb6+ which wins material!"
+                                  onclick="checkPuzzle(5, 'blunder', 1, 'd5', 'c3', '', '')">
+                                A) Nc3+
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 5, 'c1', 'h6', 2)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 5, 'h4', 'f5', 2)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p5-o2" style="flex: 1;"
                                  data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(5, 'blunder', 2, 'c1', 'h6', '', '')">
-                                B) Bh6
+                                  onclick="checkPuzzle(5, 'blunder', 2, 'h4', 'f5', '', '')">
+                                B) Nxf5
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 5, 'd5', 'c3', 3)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 5, 'd5', 'b6', 3)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p5-o3" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played Nc3+. It was safe, but you missed a strong tactical opportunity to play Nb6+ which wins material!"
-                                  onclick="checkPuzzle(5, 'blunder', 3, 'd5', 'c3', '', '')">
-                                C) Nc3+
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
+                                  onclick="checkPuzzle(5, 'correct', 3, 'd5', 'b6', '', '')">
+                                C) Nb6+
                             </div>
                         </div>
                         
@@ -985,15 +920,19 @@
             </div>
         </div>
         
-        <!-- Puzzle 6 -->
+        
+
+
+
+<!-- Puzzle 6 -->
         <div class="card">
-            <span class="badge">Opportunity 6: vs hrankt (2026.06.05)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
+            <span class="badge">Opp 6 vs hrankt</span>
+            <h2>Tactical Opportunity</h2>
+            <p>Find the tactical shot that wins material or gains a major advantage.</p>
             
             <div class="chess-grid-container">
                 <div class="chess-board" id="board-6">
-                    <div class="square light" data-square="a8"></div>
+                    <div class="square light" data-square="a8"><span class="coord coord-rank">8</span></div>
 <div class="square dark" data-square="b8"></div>
 <div class="square light" data-square="c8"><span class="piece black">♜</span></div>
 <div class="square dark" data-square="d8"></div>
@@ -1001,7 +940,7 @@
 <div class="square dark" data-square="f8"></div>
 <div class="square light" data-square="g8"><span class="piece black">♞</span></div>
 <div class="square dark" data-square="h8"></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a7"><span class="coord coord-rank">7</span><span class="piece black">♟</span></div>
 <div class="square light" data-square="b7"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="d7"><span class="piece black">♚</span></div>
@@ -1009,7 +948,7 @@
 <div class="square light" data-square="f7"></div>
 <div class="square dark" data-square="g7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="h7"><span class="piece black">♜</span></div>
-<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="a6"><span class="coord coord-rank">6</span></div>
 <div class="square dark" data-square="b6"></div>
 <div class="square light" data-square="c6"></div>
 <div class="square dark" data-square="d6"></div>
@@ -1017,7 +956,7 @@
 <div class="square dark" data-square="f6"></div>
 <div class="square light" data-square="g6"></div>
 <div class="square dark" data-square="h6"><span class="piece black">♟</span></div>
-<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="a5"><span class="coord coord-rank">5</span></div>
 <div class="square light" data-square="b5"></div>
 <div class="square dark" data-square="c5"></div>
 <div class="square light" data-square="d5"></div>
@@ -1025,7 +964,7 @@
 <div class="square light" data-square="f5"></div>
 <div class="square dark" data-square="g5"></div>
 <div class="square light" data-square="h5"><span class="piece white">♛</span></div>
-<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="a4"><span class="coord coord-rank">4</span></div>
 <div class="square dark" data-square="b4"></div>
 <div class="square light" data-square="c4"></div>
 <div class="square dark" data-square="d4"></div>
@@ -1033,7 +972,7 @@
 <div class="square dark" data-square="f4"></div>
 <div class="square light" data-square="g4"></div>
 <div class="square dark" data-square="h4"></div>
-<div class="square dark" data-square="a3"></div>
+<div class="square dark" data-square="a3"><span class="coord coord-rank">3</span></div>
 <div class="square light" data-square="b3"></div>
 <div class="square dark" data-square="c3"><span class="piece white">♞</span></div>
 <div class="square light" data-square="d3"><span class="piece white">♟</span></div>
@@ -1041,7 +980,7 @@
 <div class="square light" data-square="f3"></div>
 <div class="square dark" data-square="g3"></div>
 <div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"><span class="piece white">♟</span></div>
+<div class="square light" data-square="a2"><span class="coord coord-rank">2</span><span class="piece white">♟</span></div>
 <div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="c2"></div>
 <div class="square dark" data-square="d2"></div>
@@ -1049,43 +988,41 @@
 <div class="square dark" data-square="f2"></div>
 <div class="square light" data-square="g2"><span class="piece white">♟</span></div>
 <div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"><span class="piece white">♜</span></div>
-<div class="square light" data-square="d1"></div>
-<div class="square dark" data-square="e1"></div>
-<div class="square light" data-square="f1"><span class="piece white">♜</span></div>
-<div class="square dark" data-square="g1"></div>
-<div class="square light" data-square="h1"><span class="piece white">♚</span></div>
+<div class="square dark" data-square="a1"><span class="coord coord-rank">1</span><span class="coord coord-file">a</span></div>
+<div class="square light" data-square="b1"><span class="coord coord-file">b</span></div>
+<div class="square dark" data-square="c1"><span class="coord coord-file">c</span><span class="piece white">♜</span></div>
+<div class="square light" data-square="d1"><span class="coord coord-file">d</span></div>
+<div class="square dark" data-square="e1"><span class="coord coord-file">e</span></div>
+<div class="square light" data-square="f1"><span class="coord coord-file">f</span><span class="piece white">♜</span></div>
+<div class="square dark" data-square="g1"><span class="coord coord-file">g</span></div>
+<div class="square light" data-square="h1"><span class="coord coord-file">h</span><span class="piece white">♚</span></div>
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 6, 'f1', 'f7', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 6, 'a2', 'a3', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p6-o1" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played Rf7. It was safe, but you missed a strong tactical opportunity to play Qf5+ which wins material!"
-                                  onclick="checkPuzzle(6, 'blunder', 1, 'f1', 'f7', '', '')">
-                                A) Rf7
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 6, 'h5', 'f5', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p6-o2" style="flex: 1;"
-                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
-                                  onclick="checkPuzzle(6, 'correct', 2, 'h5', 'f5', '', '')">
-                                B) Qf5+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 6, 'h2', 'h4', 3)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p6-o3" style="flex: 1;"
                                  data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(6, 'blunder', 3, 'h2', 'h4', '', '')">
-                                C) h4
+                                  onclick="checkPuzzle(6, 'blunder', 1, 'a2', 'a3', '', '')">
+                                A) a3
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 6, 'f1', 'f7', 2)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p6-o2" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played Rf7. It was safe, but you missed a strong tactical opportunity to play Qf5+ which wins material!"
+                                  onclick="checkPuzzle(6, 'blunder', 2, 'f1', 'f7', '', '')">
+                                B) Rf7
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 6, 'h5', 'f5', 3)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p6-o3" style="flex: 1;"
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
+                                  onclick="checkPuzzle(6, 'correct', 3, 'h5', 'f5', '', '')">
+                                C) Qf5+
                             </div>
                         </div>
                         
@@ -1095,15 +1032,19 @@
             </div>
         </div>
         
-        <!-- Puzzle 7 -->
+        
+
+
+
+<!-- Puzzle 7 -->
         <div class="card">
-            <span class="badge">Opportunity 7: vs adithyan2727 (2026.06.06)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
+            <span class="badge">Opp 7 vs adithyan2727</span>
+            <h2>Tactical Opportunity</h2>
+            <p>Find the tactical shot that wins material or gains a major advantage.</p>
             
             <div class="chess-grid-container">
                 <div class="chess-board" id="board-7">
-                    <div class="square light" data-square="a8"><span class="piece black">♜</span></div>
+                    <div class="square light" data-square="a8"><span class="coord coord-rank">8</span><span class="piece black">♜</span></div>
 <div class="square dark" data-square="b8"></div>
 <div class="square light" data-square="c8"></div>
 <div class="square dark" data-square="d8"></div>
@@ -1111,7 +1052,7 @@
 <div class="square dark" data-square="f8"></div>
 <div class="square light" data-square="g8"></div>
 <div class="square dark" data-square="h8"></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a7"><span class="coord coord-rank">7</span><span class="piece black">♟</span></div>
 <div class="square light" data-square="b7"></div>
 <div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="d7"><span class="piece white">♜</span></div>
@@ -1119,7 +1060,7 @@
 <div class="square light" data-square="f7"></div>
 <div class="square dark" data-square="g7"></div>
 <div class="square light" data-square="h7"></div>
-<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="a6"><span class="coord coord-rank">6</span></div>
 <div class="square dark" data-square="b6"></div>
 <div class="square light" data-square="c6"></div>
 <div class="square dark" data-square="d6"></div>
@@ -1127,7 +1068,7 @@
 <div class="square dark" data-square="f6"></div>
 <div class="square light" data-square="g6"></div>
 <div class="square dark" data-square="h6"></div>
-<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="a5"><span class="coord coord-rank">5</span></div>
 <div class="square light" data-square="b5"></div>
 <div class="square dark" data-square="c5"><span class="piece white">♛</span></div>
 <div class="square light" data-square="d5"></div>
@@ -1135,7 +1076,7 @@
 <div class="square light" data-square="f5"></div>
 <div class="square dark" data-square="g5"></div>
 <div class="square light" data-square="h5"></div>
-<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="a4"><span class="coord coord-rank">4</span></div>
 <div class="square dark" data-square="b4"></div>
 <div class="square light" data-square="c4"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="d4"></div>
@@ -1143,7 +1084,7 @@
 <div class="square dark" data-square="f4"></div>
 <div class="square light" data-square="g4"></div>
 <div class="square dark" data-square="h4"><span class="piece white">♝</span></div>
-<div class="square dark" data-square="a3"><span class="piece white">♟</span></div>
+<div class="square dark" data-square="a3"><span class="coord coord-rank">3</span><span class="piece white">♟</span></div>
 <div class="square light" data-square="b3"></div>
 <div class="square dark" data-square="c3"><span class="piece white">♟</span></div>
 <div class="square light" data-square="d3"></div>
@@ -1151,7 +1092,7 @@
 <div class="square light" data-square="f3"></div>
 <div class="square dark" data-square="g3"></div>
 <div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"></div>
+<div class="square light" data-square="a2"><span class="coord coord-rank">2</span></div>
 <div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="c2"><span class="piece white">♟</span></div>
 <div class="square dark" data-square="d2"></div>
@@ -1159,43 +1100,41 @@
 <div class="square dark" data-square="f2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="g2"><span class="piece black">♜</span></div>
 <div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"><span class="piece white">♚</span></div>
-<div class="square light" data-square="d1"></div>
-<div class="square dark" data-square="e1"></div>
-<div class="square light" data-square="f1"></div>
-<div class="square dark" data-square="g1"></div>
-<div class="square light" data-square="h1"><span class="piece white">♜</span></div>
+<div class="square dark" data-square="a1"><span class="coord coord-rank">1</span><span class="coord coord-file">a</span></div>
+<div class="square light" data-square="b1"><span class="coord coord-file">b</span></div>
+<div class="square dark" data-square="c1"><span class="coord coord-file">c</span><span class="piece white">♚</span></div>
+<div class="square light" data-square="d1"><span class="coord coord-file">d</span></div>
+<div class="square dark" data-square="e1"><span class="coord coord-file">e</span></div>
+<div class="square light" data-square="f1"><span class="coord coord-file">f</span></div>
+<div class="square dark" data-square="g1"><span class="coord coord-file">g</span></div>
+<div class="square light" data-square="h1"><span class="coord coord-file">h</span><span class="piece white">♜</span></div>
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 7, 'c5', 'c6', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 7, 'h2', 'h3', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p7-o1" style="flex: 1;"
-                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
-                                  onclick="checkPuzzle(7, 'correct', 1, 'c5', 'c6', '', '')">
-                                A) Qc6+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 7, 'c5', 'e7', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p7-o2" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played Qe7+. It was safe, but you missed a strong tactical opportunity to play Qc6+ which wins material!"
-                                  onclick="checkPuzzle(7, 'blunder', 2, 'c5', 'e7', '', '')">
-                                B) Qe7+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 7, 'f2', 'f4', 3)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p7-o3" style="flex: 1;"
                                  data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(7, 'blunder', 3, 'f2', 'f4', '', '')">
-                                C) f4
+                                  onclick="checkPuzzle(7, 'blunder', 1, 'h2', 'h3', '', '')">
+                                A) h3
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 7, 'c5', 'c6', 2)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p7-o2" style="flex: 1;"
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
+                                  onclick="checkPuzzle(7, 'correct', 2, 'c5', 'c6', '', '')">
+                                B) Qc6+
+                            </div>
+                        </div>
+                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
+                            <button class="preview-btn" onclick="togglePreview(this, 7, 'c5', 'e7', 3)" title="Tap to toggle move preview">👁️</button>
+                            <div class="quiz-option" id="p7-o3" style="flex: 1;"
+                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played Qe7+. It was safe, but you missed a strong tactical opportunity to play Qc6+ which wins material!"
+                                  onclick="checkPuzzle(7, 'blunder', 3, 'c5', 'e7', '', '')">
+                                C) Qe7+
                             </div>
                         </div>
                         
@@ -1205,15 +1144,19 @@
             </div>
         </div>
         
-        <!-- Puzzle 8 -->
+        
+
+
+
+<!-- Puzzle 8 -->
         <div class="card">
-            <span class="badge">Opportunity 8: vs adithyan2727 (2026.06.06)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
+            <span class="badge">Opp 8 vs adithyan2727</span>
+            <h2>Tactical Opportunity</h2>
+            <p>Find the tactical shot that wins material or gains a major advantage.</p>
             
             <div class="chess-grid-container">
                 <div class="chess-board" id="board-8">
-                    <div class="square light" data-square="a8"><span class="piece black">♜</span></div>
+                    <div class="square light" data-square="a8"><span class="coord coord-rank">8</span><span class="piece black">♜</span></div>
 <div class="square dark" data-square="b8"></div>
 <div class="square light" data-square="c8"></div>
 <div class="square dark" data-square="d8"></div>
@@ -1221,7 +1164,7 @@
 <div class="square dark" data-square="f8"></div>
 <div class="square light" data-square="g8"></div>
 <div class="square dark" data-square="h8"></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
+<div class="square dark" data-square="a7"><span class="coord coord-rank">7</span><span class="piece black">♟</span></div>
 <div class="square light" data-square="b7"></div>
 <div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
 <div class="square light" data-square="d7"><span class="piece white">♜</span></div>
@@ -1229,7 +1172,7 @@
 <div class="square light" data-square="f7"></div>
 <div class="square dark" data-square="g7"></div>
 <div class="square light" data-square="h7"></div>
-<div class="square light" data-square="a6"></div>
+<div class="square light" data-square="a6"><span class="coord coord-rank">6</span></div>
 <div class="square dark" data-square="b6"></div>
 <div class="square light" data-square="c6"></div>
 <div class="square dark" data-square="d6"></div>
@@ -1237,7 +1180,7 @@
 <div class="square dark" data-square="f6"><span class="piece white">♛</span></div>
 <div class="square light" data-square="g6"></div>
 <div class="square dark" data-square="h6"></div>
-<div class="square dark" data-square="a5"></div>
+<div class="square dark" data-square="a5"><span class="coord coord-rank">5</span></div>
 <div class="square light" data-square="b5"></div>
 <div class="square dark" data-square="c5"></div>
 <div class="square light" data-square="d5"></div>
@@ -1245,7 +1188,7 @@
 <div class="square light" data-square="f5"></div>
 <div class="square dark" data-square="g5"></div>
 <div class="square light" data-square="h5"></div>
-<div class="square light" data-square="a4"></div>
+<div class="square light" data-square="a4"><span class="coord coord-rank">4</span></div>
 <div class="square dark" data-square="b4"></div>
 <div class="square light" data-square="c4"><span class="piece black">♟</span></div>
 <div class="square dark" data-square="d4"></div>
@@ -1253,7 +1196,7 @@
 <div class="square dark" data-square="f4"></div>
 <div class="square light" data-square="g4"></div>
 <div class="square dark" data-square="h4"><span class="piece white">♝</span></div>
-<div class="square dark" data-square="a3"><span class="piece white">♟</span></div>
+<div class="square dark" data-square="a3"><span class="coord coord-rank">3</span><span class="piece white">♟</span></div>
 <div class="square light" data-square="b3"></div>
 <div class="square dark" data-square="c3"><span class="piece white">♟</span></div>
 <div class="square light" data-square="d3"></div>
@@ -1261,7 +1204,7 @@
 <div class="square light" data-square="f3"></div>
 <div class="square dark" data-square="g3"></div>
 <div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"></div>
+<div class="square light" data-square="a2"><span class="coord coord-rank">2</span></div>
 <div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="c2"><span class="piece white">♟</span></div>
 <div class="square dark" data-square="d2"></div>
@@ -1269,43 +1212,41 @@
 <div class="square dark" data-square="f2"><span class="piece white">♟</span></div>
 <div class="square light" data-square="g2"><span class="piece black">♜</span></div>
 <div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"><span class="piece white">♚</span></div>
-<div class="square light" data-square="d1"></div>
-<div class="square dark" data-square="e1"></div>
-<div class="square light" data-square="f1"></div>
-<div class="square dark" data-square="g1"></div>
-<div class="square light" data-square="h1"><span class="piece white">♜</span></div>
+<div class="square dark" data-square="a1"><span class="coord coord-rank">1</span><span class="coord coord-file">a</span></div>
+<div class="square light" data-square="b1"><span class="coord coord-file">b</span></div>
+<div class="square dark" data-square="c1"><span class="coord coord-file">c</span><span class="piece white">♚</span></div>
+<div class="square light" data-square="d1"><span class="coord coord-file">d</span></div>
+<div class="square dark" data-square="e1"><span class="coord coord-file">e</span></div>
+<div class="square light" data-square="f1"><span class="coord coord-file">f</span></div>
+<div class="square dark" data-square="g1"><span class="coord coord-file">g</span></div>
+<div class="square light" data-square="h1"><span class="coord coord-file">h</span><span class="piece white">♜</span></div>
                 </div>
                 
                 <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
                     <div class="quiz-container">
 
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 8, 'f2', 'f3', 1)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 8, 'f6', 'c6', 1)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p8-o1" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played f3+. It was safe, but you missed a strong tactical opportunity to play Qc6+ which wins material!"
-                                  onclick="checkPuzzle(8, 'blunder', 1, 'f2', 'f3', '', '')">
-                                A) f3+
+                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
+                                  onclick="checkPuzzle(8, 'correct', 1, 'f6', 'c6', '', '')">
+                                A) Qc6+
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 8, 'd7', 'c7', 2)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 8, 'c1', 'd2', 2)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p8-o2" style="flex: 1;"
                                  data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(8, 'blunder', 2, 'd7', 'c7', '', '')">
-                                B) Rxc7
+                                  onclick="checkPuzzle(8, 'blunder', 2, 'c1', 'd2', '', '')">
+                                B) Kd2
                             </div>
                         </div>
                         <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 8, 'f6', 'c6', 3)" title="Tap to toggle move preview">👁️</button>
+                            <button class="preview-btn" onclick="togglePreview(this, 8, 'f2', 'f3', 3)" title="Tap to toggle move preview">👁️</button>
                             <div class="quiz-option" id="p8-o3" style="flex: 1;"
-                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
-                                  onclick="checkPuzzle(8, 'correct', 3, 'f6', 'c6', '', '')">
-                                C) Qc6+
+                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played f3+. It was safe, but you missed a strong tactical opportunity to play Qc6+ which wins material!"
+                                  onclick="checkPuzzle(8, 'blunder', 3, 'f2', 'f3', '', '')">
+                                C) f3+
                             </div>
                         </div>
                         
@@ -1315,242 +1256,8 @@
             </div>
         </div>
         
-        <!-- Puzzle 9 -->
-        <div class="card">
-            <span class="badge">Opportunity 9: vs Etibar134 (2026.06.10)</span>
-            <h2>Tactical Opportunity Missed in Your Match</h2>
-            <p>Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?</p>
-            
-            <div class="chess-grid-container">
-                <div class="chess-board" id="board-9">
-                    <div class="square light" data-square="a8"></div>
-<div class="square dark" data-square="b8"></div>
-<div class="square light" data-square="c8"></div>
-<div class="square dark" data-square="d8"></div>
-<div class="square light" data-square="e8"></div>
-<div class="square dark" data-square="f8"></div>
-<div class="square light" data-square="g8"></div>
-<div class="square dark" data-square="h8"><span class="piece white">♛</span></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
-<div class="square light" data-square="b7"></div>
-<div class="square dark" data-square="c7"></div>
-<div class="square light" data-square="d7"></div>
-<div class="square dark" data-square="e7"><span class="piece black">♝</span></div>
-<div class="square light" data-square="f7"><span class="piece black">♚</span></div>
-<div class="square dark" data-square="g7"></div>
-<div class="square light" data-square="h7"><span class="piece black">♟</span></div>
-<div class="square light" data-square="a6"></div>
-<div class="square dark" data-square="b6"></div>
-<div class="square light" data-square="c6"><span class="piece black">♟</span></div>
-<div class="square dark" data-square="d6"></div>
-<div class="square light" data-square="e6"></div>
-<div class="square dark" data-square="f6"></div>
-<div class="square light" data-square="g6"></div>
-<div class="square dark" data-square="h6"></div>
-<div class="square dark" data-square="a5"></div>
-<div class="square light" data-square="b5"><span class="piece black">♟</span></div>
-<div class="square dark" data-square="c5"></div>
-<div class="square light" data-square="d5"></div>
-<div class="square dark" data-square="e5"><span class="piece black">♞</span></div>
-<div class="square light" data-square="f5"><span class="piece black">♟</span></div>
-<div class="square dark" data-square="g5"><span class="piece white">♝</span></div>
-<div class="square light" data-square="h5"></div>
-<div class="square light" data-square="a4"></div>
-<div class="square dark" data-square="b4"></div>
-<div class="square light" data-square="c4"></div>
-<div class="square dark" data-square="d4"></div>
-<div class="square light" data-square="e4"><span class="piece black">♟</span></div>
-<div class="square dark" data-square="f4"><span class="piece white">♟</span></div>
-<div class="square light" data-square="g4"><span class="piece black">♞</span></div>
-<div class="square dark" data-square="h4"></div>
-<div class="square dark" data-square="a3"></div>
-<div class="square light" data-square="b3"></div>
-<div class="square dark" data-square="c3"><span class="piece white">♞</span></div>
-<div class="square light" data-square="d3"></div>
-<div class="square dark" data-square="e3"></div>
-<div class="square light" data-square="f3"></div>
-<div class="square dark" data-square="g3"></div>
-<div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
-<div class="square light" data-square="c2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="d2"></div>
-<div class="square light" data-square="e2"></div>
-<div class="square dark" data-square="f2"></div>
-<div class="square light" data-square="g2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"></div>
-<div class="square light" data-square="b1"></div>
-<div class="square dark" data-square="c1"></div>
-<div class="square light" data-square="d1"><span class="piece white">♜</span></div>
-<div class="square dark" data-square="e1"><span class="piece white">♚</span></div>
-<div class="square light" data-square="f1"></div>
-<div class="square dark" data-square="g1"></div>
-<div class="square light" data-square="h1"><span class="piece white">♜</span></div>
-                </div>
-                
-                <div class="explanation-side">
-                    <p>What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
-                    <div class="quiz-container">
-
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 9, 'h2', 'h3', 1)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p9-o1" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> In the game, you played h3. It was safe, but you missed a strong tactical opportunity to play Qxh7+ which wins material!"
-                                  onclick="checkPuzzle(9, 'blunder', 1, 'h2', 'h3', '', '')">
-                                A) h3
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 9, 'h8', 'h7', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p9-o2" style="flex: 1;"
-                                 data-feedback="🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage."
-                                  onclick="checkPuzzle(9, 'correct', 2, 'h8', 'h7', '', '')">
-                                B) Qxh7+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 9, 'h1', 'f1', 3)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p9-o3" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material."
-                                  onclick="checkPuzzle(9, 'blunder', 3, 'h1', 'f1', '', '')">
-                                C) Rf1
-                            </div>
-                        </div>
-                        
-                        <div id="p9-feedback" class="feedback-msg"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Puzzle 10 -->
-        <div class="card">
-            <span class="badge">Safety Challenge 10: vs hrankt (2026.06.05)</span>
-            <h2>Saved Position from Your Match</h2>
-            <p>In this position, you made a move that unfortunately lost material. Can you find the safest alternative?</p>
-            
-            <div class="chess-grid-container">
-                <div class="chess-board" id="board-10">
-                    <div class="square light" data-square="a8"></div>
-<div class="square dark" data-square="b8"></div>
-<div class="square light" data-square="c8"><span class="piece black">♜</span></div>
-<div class="square dark" data-square="d8"></div>
-<div class="square light" data-square="e8"></div>
-<div class="square dark" data-square="f8"></div>
-<div class="square light" data-square="g8"><span class="piece black">♞</span></div>
-<div class="square dark" data-square="h8"></div>
-<div class="square dark" data-square="a7"><span class="piece black">♟</span></div>
-<div class="square light" data-square="b7"><span class="piece black">♟</span></div>
-<div class="square dark" data-square="c7"><span class="piece black">♟</span></div>
-<div class="square light" data-square="d7"><span class="piece black">♚</span></div>
-<div class="square dark" data-square="e7"></div>
-<div class="square light" data-square="f7"></div>
-<div class="square dark" data-square="g7"><span class="piece black">♟</span></div>
-<div class="square light" data-square="h7"><span class="piece black">♜</span></div>
-<div class="square light" data-square="a6"></div>
-<div class="square dark" data-square="b6"></div>
-<div class="square light" data-square="c6"></div>
-<div class="square dark" data-square="d6"></div>
-<div class="square light" data-square="e6"></div>
-<div class="square dark" data-square="f6"><span class="piece black">♛</span></div>
-<div class="square light" data-square="g6"></div>
-<div class="square dark" data-square="h6"><span class="piece black">♟</span></div>
-<div class="square dark" data-square="a5"></div>
-<div class="square light" data-square="b5"></div>
-<div class="square dark" data-square="c5"><span class="piece black">♝</span></div>
-<div class="square light" data-square="d5"></div>
-<div class="square dark" data-square="e5"><span class="piece black">♟</span></div>
-<div class="square light" data-square="f5"></div>
-<div class="square dark" data-square="g5"></div>
-<div class="square light" data-square="h5"><span class="piece white">♛</span></div>
-<div class="square light" data-square="a4"></div>
-<div class="square dark" data-square="b4"></div>
-<div class="square light" data-square="c4"><span class="piece white">♝</span></div>
-<div class="square dark" data-square="d4"><span class="piece black">♞</span></div>
-<div class="square light" data-square="e4"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="f4"></div>
-<div class="square light" data-square="g4"></div>
-<div class="square dark" data-square="h4"></div>
-<div class="square dark" data-square="a3"></div>
-<div class="square light" data-square="b3"></div>
-<div class="square dark" data-square="c3"></div>
-<div class="square light" data-square="d3"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="e3"></div>
-<div class="square light" data-square="f3"></div>
-<div class="square dark" data-square="g3"></div>
-<div class="square light" data-square="h3"></div>
-<div class="square light" data-square="a2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="b2"><span class="piece white">♟</span></div>
-<div class="square light" data-square="c2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="d2"></div>
-<div class="square light" data-square="e2"></div>
-<div class="square dark" data-square="f2"><span class="piece white">♟</span></div>
-<div class="square light" data-square="g2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="h2"><span class="piece white">♟</span></div>
-<div class="square dark" data-square="a1"><span class="piece white">♜</span></div>
-<div class="square light" data-square="b1"><span class="piece white">♞</span></div>
-<div class="square dark" data-square="c1"><span class="piece white">♝</span></div>
-<div class="square light" data-square="d1"></div>
-<div class="square dark" data-square="e1"></div>
-<div class="square light" data-square="f1"><span class="piece white">♜</span></div>
-<div class="square dark" data-square="g1"><span class="piece white">♚</span></div>
-<div class="square light" data-square="h1"></div>
-                </div>
-                
-                <div class="explanation-side">
-                    <p>What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move.</p>
-                    
-                    <div class="quiz-container">
-
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 10, 'c4', 'b5', 1)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p10-o1" style="flex: 1;"
-                                 data-feedback="❌ <strong>Let's think!</strong> In the game, you played this, but it allowed the opponent to play Nxb5 and win your Bishop! Look for a safe defense instead."
-                                  onclick="checkPuzzle(10, 'blunder', 1, 'c4', 'b5', 'd4', 'b5')">
-                                A) Bb5+
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 10, 'c1', 'f4', 2)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p10-o2" style="flex: 1;"
-                                 data-feedback="❌ <strong>Not quite!</strong> While this move might be legal, it ignores a threat! The opponent can respond with Qxf4, winning your Bishop! Can you find the safest choice?"
-                                  onclick="checkPuzzle(10, 'blunder', 2, 'c1', 'f4', 'f6', 'f4')">
-                                B) Bf4
-                            </div>
-                        </div>
-                        <div class="quiz-option-container" style="display: flex; gap: 8px; margin-bottom: 0.5rem;">
-                            <button class="preview-btn" onclick="togglePreview(this, 10, 'h5', 'g4', 3)" title="Tap to toggle move preview">👁️</button>
-                            <div class="quiz-option" id="p10-o3" style="flex: 1;"
-                                 data-feedback="🎉 <strong>Fantastic!</strong> That move is completely safe, keeps your material protected, and helps you command the board!"
-                                  onclick="checkPuzzle(10, 'correct', 3, 'h5', 'g4', '', '')">
-                                C) Qg4+
-                            </div>
-                        </div>
-                        
-                        <div id="p10-feedback" class="feedback-msg"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
         
 
-        <!-- General Training Card -->
-        <section class="card">
-            <span class="badge">Pro Chess Habits</span>
-            <h2>Keeping Your Army Defended</h2>
-            <p>
-                As you keep playing, build this quick habit before every move:
-            </p>
-            <ol>
-                <li><strong>Look at the board:</strong> Did your opponent's last move make a new threat?</li>
-                <li><strong>Do a landing scan:</strong> Is the square you are moving to safe and protected?</li>
-            </ol>
-            <p>
-                Use the **Chess.com Game Review** feature to review your games. Check out where the coach points out key defense patterns!
-            </p>
-        </section>
 
     </main>
 
@@ -1559,103 +1266,12 @@
     </footer>
 
     <script>
-        // Rating history data injected from python
-        const ratingHistory = [198, 157, 149, 142, 150, 283, 158, 291, 299, 299, 299, 307, 315, 323, 314, 150, 322, 330, 338, 330, 322, 314, 306, 314, 323, 331, 323, 331, 339, 347];
-        
-        function drawChart() {
-            const svg = document.getElementById('rating-chart');
-            if (ratingHistory.length === 0) return;
-            
-            const width = 800;
-            const height = 220;
-            
-            // Adjust padding to make room for larger Y-axis labels
-            const paddingLeft = 60;
-            const paddingRight = 40;
-            const paddingTop = 30;
-            const paddingBottom = 30;
-            
-            // Map values
-            let minRating = Math.min(...ratingHistory) - 10;
-            let maxRating = Math.max(...ratingHistory) + 10;
-            if (maxRating - minRating < 20) {
-                maxRating = minRating + 20;
-            }
-            
-            const pointsCount = ratingHistory.length;
-            const stepX = (width - paddingLeft - paddingRight) / Math.max(1, pointsCount - 1);
-            
-            function getY(rating) {
-                const ratio = (rating - minRating) / (maxRating - minRating);
-                return height - paddingBottom - ratio * (height - paddingTop - paddingBottom);
-            }
-            
-            // Generate path
-            let d = "";
-            let dotsHTML = "";
-            
-            for (let i = 0; i < pointsCount; i++) {
-                const x = paddingLeft + i * stepX;
-                const y = getY(ratingHistory[i]);
-                
-                if (i === 0) {
-                    d += `M ${x} ${y}`;
-                } else {
-                    d += ` L ${x} ${y}`;
-                }
-                
-                // Add glowing circles on dots
-                dotsHTML += `<circle cx="${x}" cy="${y}" r="5" fill="#a78bfa" stroke="#fff" stroke-width="2">
-                    <title>Game: ${ratingHistory[i]}</title>
-                </circle>`;
-            }
-            
-            svg.innerHTML = `
-                <!-- Gradient definition -->
-                <defs>
-                    <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#3b82f6" />
-                        <stop offset="100%" stop-color="#10b981" />
-                    </linearGradient>
-                    <linearGradient id="area-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3" />
-                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
-                    </linearGradient>
-                </defs>
-                
-                <!-- Floor baseline rating grid -->
-                <line x1="${paddingLeft}" y1="${height - paddingBottom}" x2="${width - paddingRight}" y2="${height - paddingBottom}" 
-                      stroke="rgba(255,255,255,0.1)" stroke-width="1" />
-                <text x="${paddingLeft - 12}" y="${height - paddingBottom + 6}" fill="#94a3b8" font-size="18" font-family="Outfit" text-anchor="end">${minRating}</text>
-                
-                <!-- Current rating grid -->
-                <line x1="${paddingLeft}" y1="${getY(ratingHistory[pointsCount - 1])}" x2="${width - paddingRight}" y2="${getY(ratingHistory[pointsCount - 1])}" 
-                      stroke="rgba(167, 139, 250, 0.4)" stroke-dasharray="4" stroke-width="1" />
-                <text x="${paddingLeft - 12}" y="${getY(ratingHistory[pointsCount - 1]) + 6}" fill="#a78bfa" font-weight="700" font-size="18" font-family="Outfit" text-anchor="end">${ratingHistory[pointsCount - 1]}</text>
-                
-                <!-- Area fill -->
-                <path d="${d} L ${paddingLeft + (pointsCount-1)*stepX} ${height - paddingBottom} L ${paddingLeft} ${height - paddingBottom} Z" 
-                      fill="url(#area-grad)" />
-                
-                <!-- Glowing rating line -->
-                <path d="${d}" fill="none" stroke="url(#line-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-                
-                <!-- Dots -->
-                ${dotsHTML}
-            `;
-        }
-        
-        // Draw the chart on load
-        window.addEventListener('load', drawChart);
-
         const baseBoardStates = {};
         const activeMoves = {};
         
-        // Save base board states for ALL boards
         window.addEventListener('load', () => {
             const boards = document.querySelectorAll('.chess-board');
             boards.forEach(board => {
-                // Save the base state of the board for previews
                 baseBoardStates[board.id] = board.innerHTML;
             });
         });
@@ -1681,18 +1297,15 @@
             const container = board.closest('.card');
             const buttons = container.querySelectorAll('.preview-btn');
 
-            // If it's already active, deactivate it
             if (activePreviews[puzzleId] === btn) {
                 delete activePreviews[puzzleId];
                 btn.classList.remove('preview-active');
                 
-                // Revert to base state
                 board.innerHTML = baseBoardStates[board.id];
                 board.querySelectorAll('.square').forEach(sq => {
                     sq.classList.remove('threat-source', 'threat-target');
                 });
                 
-                // Re-apply active submitted move if exists
                 const active = activeMoves[puzzleId];
                 if (active) {
                     applyMoveToBoard(board, active.fromSq, active.toSq);
@@ -1706,49 +1319,39 @@
                 return;
             }
 
-            // Otherwise, deactivate other preview buttons on this card and activate this one
             buttons.forEach(b => b.classList.remove('preview-active'));
             btn.classList.add('preview-active');
             activePreviews[puzzleId] = btn;
 
-            // Revert board to base state first and clear highlights
             board.innerHTML = baseBoardStates[board.id];
             board.querySelectorAll('.square').forEach(sq => {
                 sq.classList.remove('threat-source', 'threat-target');
             });
 
-            // Apply preview move
             applyMoveToBoard(board, fromSq, toSq);
         }
 
         function checkPuzzle(puzzleId, type, optionIdx, fromSq, toSq, refutationFrom, refutationTo) {
-            // Save as active submitted move
             activeMoves[puzzleId] = { fromSq, toSq, refutationFrom, refutationTo, type };
             
             const board = document.getElementById('board-' + puzzleId);
             if (!board) return;
             
-            // Deactivate and clear any preview states
             delete activePreviews[puzzleId];
             const container = board.closest('.card');
             const buttons = container.querySelectorAll('.preview-btn');
             buttons.forEach(b => b.classList.remove('preview-active'));
             
-            // Revert to base state
             board.innerHTML = baseBoardStates[board.id];
-            
-            // Clear threat highlights
             board.querySelectorAll('.square').forEach(sq => {
                 sq.classList.remove('threat-source', 'threat-target');
             });
             
-            // Visually execute the player's move
             applyMoveToBoard(board, fromSq, toSq);
             
             const feedback = document.getElementById('p' + puzzleId + '-feedback');
             feedback.style.display = 'block';
             
-            // Reset styles
             for (let i = 1; i <= 3; i++) {
                 const opt = document.getElementById('p' + puzzleId + '-o' + i);
                 if (opt) opt.className = 'quiz-option';
@@ -1761,7 +1364,6 @@
                 feedback.className = 'feedback-msg danger';
                 feedback.innerHTML = feedbackText;
                 
-                // Highlight the threat attacker and target squares
                 if (refutationFrom && refutationTo) {
                     const fromEl = board.querySelector(`[data-square="${refutationFrom}"]`);
                     const toEl = board.querySelector(`[data-square="${refutationTo}"]`);

@@ -144,7 +144,17 @@ def board_to_html_grid(board, player_color):
             is_light = (row + col) % 2 != 0
             square_class = "light" if is_light else "dark"
             square_name = chess.square_name(square)
-            html.append(f'<div class="square {square_class}" data-square="{square_name}">{symbol_html}</div>')
+            
+            # Board coordinates (tiny letters/numbers like chess.com)
+            show_rank = (col == 0) if is_white else (col == 7)
+            show_file = (row == 0) if is_white else (row == 7)
+            coord_html = ""
+            if show_rank:
+                coord_html += f'<span class="coord coord-rank">{row + 1}</span>'
+            if show_file:
+                coord_html += f'<span class="coord coord-file">{chr(ord("a") + col)}</span>'
+                
+            html.append(f'<div class="square {square_class}" data-square="{square_name}">{coord_html}{symbol_html}</div>')
     return "\n".join(html)
 
 def main():
@@ -315,9 +325,9 @@ def main():
                 is_moved_into_danger = board_before.piece_at(blunder_move.from_square) is not None and not board_before.is_capture(blunder_move)
                 
                 if is_moved_into_danger:
-                    description = "In this position, you made a move that unfortunately lost material. Can you find the safest alternative?"
+                    description = "Find a safer alternative to keep your material."
                 else:
-                    description = "In this position, you made a capture that allowed a quick counter-attack and lost material. Look for a safer developing move instead!"
+                    description = "Find a safer developing move instead of this capture."
                 
                 opponent_move = moves[opponent_move_idx]
                 is_promo = opponent_move.promotion is not None
@@ -412,7 +422,7 @@ def main():
                             "incorrect_feedback": "❌ <strong>Not quite!</strong> There is a much stronger tactical option available here that wins material.",
                             "played_feedback": f"❌ <strong>Not quite!</strong> In the game, you played {move_sans[player_move_idx]}. It was safe, but you missed a strong tactical opportunity to play {opt_move_san} which wins material!",
                             "correct_feedback": f"🎉 <strong>Fantastic!</strong> That is the strong tactical opportunity! This move wins material and gains a medium-term advantage.",
-                            "description": "Your opponent left an opening here. Can you find the strong tactical shot that wins material or gains a major advantage?",
+                            "description": "Find the tactical shot that wins material or gains a major advantage.",
                             "fen_before": board_before.fen(),
                             "html_board": board_to_html_grid(board_before, player_color),
                             "value_lost": best_opt_eval - actual_eval
@@ -527,13 +537,11 @@ def main():
                         </div>"""
 
         if p.get("puzzle_type") == "missed_opportunity":
-            badge_text = f"Opportunity {idx}: vs {p['opponent']} ({p['date']})"
-            title_text = "Tactical Opportunity Missed in Your Match"
-            prompt_instruction = "What was the strongest tactical option here? <strong>Click 👁️</strong> to preview the move."
+            badge_text = f"Opp {idx} vs {p['opponent']}"
+            title_text = "Tactical Opportunity"
         else:
-            badge_text = f"Safety Challenge {idx}: vs {p['opponent']} ({p['date']})"
-            title_text = "Saved Position from Your Match"
-            prompt_instruction = "What is a safer, solid choice here? <strong>Click 👁️</strong> to preview the move."
+            badge_text = f"Safety {idx} vs {p['opponent']}"
+            title_text = "Hanging Piece"
 
         puzzle_cards_html.append(f"""
         <!-- Puzzle {idx} -->
@@ -548,8 +556,6 @@ def main():
                 </div>
                 
                 <div class="explanation-side">
-                    <p>{prompt_instruction}</p>
-                    
                     <div class="quiz-container">
 {quiz_options_html}
                         
@@ -560,15 +566,14 @@ def main():
         </div>
         """)
         
-    rating_history_json = json.dumps(rating_history)
     current_rating = rating_history[-1] if rating_history else 300
-    
-    html_content = f"""<!DOCTYPE html>
+    html_content = f"""<!-- LESSON_METADATA: {{"num": {lesson_num}, "wins": {wins}, "losses": {losses}, "rating": {current_rating}, "challenges": {len(puzzles)}}} -->
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson {lesson_num}: Personalized Game Review & Progress Dashboard</title>
+    <title>Lesson {lesson_num}: Personalized Game Review</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {{
@@ -593,80 +598,62 @@ def main():
             line-height: 1.6;
         }}
 
-        header {{
+        .app-header {{
             background: linear-gradient(135deg, #1e1b4b, #1d4ed8);
-            padding: 3rem 2rem;
-            text-align: center;
-            border-bottom: 4px solid var(--accent-primary);
-            position: relative;
-            overflow: hidden;
+            padding: 0.8rem 1.5rem;
+            border-bottom: 3px solid var(--accent-primary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }}
 
-        header::after {{
-            content: '';
-            position: absolute;
-            bottom: -50px;
-            left: -50px;
-            width: 200px;
-            height: 200px;
-            background: var(--accent-secondary);
-            filter: blur(120px);
-            opacity: 0.3;
-            pointer-events: none;
+        .header-content {{
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
         }}
 
-        header::before {{
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            background: var(--accent-primary);
-            filter: blur(120px);
-            opacity: 0.3;
-            pointer-events: none;
-        }}
-
-        .header-tag {{
-            font-family: 'Outfit', sans-serif;
-            text-transform: uppercase;
-            font-weight: 800;
-            font-size: 0.9rem;
-            letter-spacing: 0.15rem;
+        .back-link {{
             color: #60a5fa;
-            margin-bottom: 0.5rem;
-            display: inline-block;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: color 0.2s ease;
         }}
 
-        h1 {{
+        .back-link:hover {{
+            color: var(--accent-primary);
+        }}
+
+        .header-title-section h1 {{
             font-family: 'Outfit', sans-serif;
-            font-size: 2.8rem;
+            font-size: 1.3rem;
             font-weight: 800;
-            margin: 0.5rem 0;
+            margin: 0;
             background: linear-gradient(to right, #60a5fa, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }}
 
-        .subtitle {{
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            max-width: 600px;
-            margin: 0.5rem auto 0 auto;
-        }}
-
         main {{
             max-width: 900px;
-            margin: 3rem auto;
-            padding: 0 1.5rem;
+            margin: 2rem auto;
+            padding: 0 1rem;
         }}
 
         .card {{
             background-color: var(--card-bg);
             border-radius: 16px;
-            padding: 2.5rem;
-            margin-bottom: 2.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -679,7 +666,7 @@ def main():
 
         h2 {{
             font-family: 'Outfit', sans-serif;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
             margin-top: 0;
             color: #e2e8f0;
@@ -687,45 +674,11 @@ def main():
             padding-left: 0.75rem;
         }}
 
-        .stat-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }}
-
-        .stat-card {{
-            background: rgba(15, 23, 42, 0.4);
-            padding: 1.25rem;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-        }}
-
-        .stat-val {{
-            font-size: 2.2rem;
-            font-weight: 800;
-            font-family: 'Outfit', sans-serif;
-            color: var(--accent-secondary);
-            margin-bottom: 0.25rem;
-        }}
-
-        .stat-val.win-stat {{
-            color: var(--success);
-        }}
-
-        .stat-label {{
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05rem;
-        }}
-
         .chess-grid-container {{
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
-            align-items: flex-start;
+            gap: 1.5rem;
+            align-items: center;
             margin: 1rem 0;
         }}
 
@@ -747,10 +700,34 @@ def main():
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             font-family: 'Segoe UI Symbol', sans-serif;
             position: relative;
-            aspect-ratio: 1; /* Keep perfect square aspect ratio to prevent empty rows from collapsing */
+            aspect-ratio: 1;
+        }}
+
+        .coord {{
+            position: absolute;
+            font-weight: 800;
+            font-size: 0.6rem;
+            line-height: 1;
+            user-select: none;
+            pointer-events: none;
+            font-family: 'Outfit', sans-serif;
+        }}
+        .coord-rank {{
+            top: 2px;
+            left: 3px;
+        }}
+        .coord-file {{
+            bottom: 2px;
+            right: 3px;
+        }}
+        .square.light .coord {{
+            color: var(--board-dark);
+        }}
+        .square.dark .coord {{
+            color: var(--board-light);
         }}
 
         .square.threat-source {{
@@ -769,7 +746,7 @@ def main():
         .preview-btn {{
             background: var(--card-bg);
             border: 2px solid #334155;
-            padding: 0.75rem;
+            padding: 0.6rem;
             border-radius: 8px;
             cursor: pointer;
             color: white;
@@ -799,8 +776,8 @@ def main():
 
         .square.highlighted::after {{
             content: '';
-            width: 25px;
-            height: 25px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             background: rgba(139, 92, 246, 0.6);
             position: absolute;
@@ -836,12 +813,13 @@ def main():
         .quiz-option {{
             background: var(--card-bg);
             border: 2px solid #334155;
-            padding: 0.75rem;
+            padding: 0.6rem 0.8rem;
             border-radius: 8px;
             margin-bottom: 0;
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 600;
+            font-size: 0.95rem;
         }}
 
         .quiz-option:hover {{
@@ -867,6 +845,7 @@ def main():
             padding: 0.75rem;
             border-radius: 6px;
             display: none;
+            font-size: 0.95rem;
         }}
 
         .feedback-msg.success {{
@@ -894,129 +873,67 @@ def main():
             margin-bottom: 0.5rem;
         }}
 
-        /* Chart Styling */
-        .chart-container {{
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            position: relative;
-        }}
-
-        .chart-header {{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }}
-
-        .chart-title {{
-            font-family: 'Outfit', sans-serif;
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #60a5fa;
-        }}
-
-        .chart-goal {{
-            font-family: 'Outfit', sans-serif;
-            font-weight: 800;
-            color: #eab308;
-            font-size: 0.9rem;
-        }}
-
-        .chart-svg {{
-            width: 100%;
-            height: auto;
-            overflow: visible;
-        }}
-
         footer {{
             text-align: center;
             padding: 2rem 0;
             color: var(--text-muted);
             font-size: 0.9rem;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            margin-top: 5rem;
+            margin-top: 3rem;
+        }}
+
+        @media (max-width: 600px) {{
+            main {{
+                margin: 1rem auto;
+                padding: 0 0.5rem;
+            }}
+            .card {{
+                padding: 1.25rem;
+                border-radius: 12px;
+                margin-bottom: 1.25rem;
+            }}
+            h2 {{
+                font-size: 1.3rem;
+            }}
+            .chess-board {{
+                max-width: 100%;
+                border-width: 4px;
+            }}
+            .square {{
+                font-size: 1.5rem;
+            }}
+            .square.highlighted::after {{
+                width: 10px;
+                height: 10px;
+            }}
+            .quiz-option {{
+                padding: 0.5rem 0.7rem;
+                font-size: 0.9rem;
+            }}
+            .preview-btn {{
+                padding: 0.5rem;
+            }}
         }}
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-tag">Progress Review</div>
-        <h1>Your Personalized Chess Board Room</h1>
-        <p class="subtitle">Welcome back! Let's take a look at your daily progress and practice some shield patterns.</p>
+    <header class="app-header">
+        <div class="header-content">
+            <a href="../index.html" class="back-link">
+                <span>←</span> Dashboard
+            </a>
+            <div class="header-title-section">
+                <h1>Lesson {lesson_num}: Personalized Game Review</h1>
+            </div>
+            <div class="header-stats-tag">
+                <span class="badge">Lesson {lesson_num}</span>
+            </div>
+        </div>
     </header>
 
     <main>
-
-        <!-- Stats Overview -->
-        <section class="card">
-            <span class="badge">Activity & Performance Overview</span>
-            <h2>Welcome Back, Champion!</h2>
-            <p>
-                Fantastic job playing chess daily! Let's check in on how you've been doing. Every chess player—even grandmasters—works on keeping their pieces safe. Here is a look at your recent numbers:
-            </p>
-            
-            <div class="stat-grid">
-                <div class="stat-card">
-                    <div class="stat-val win-stat">{wins}</div>
-                    <div class="stat-label">Wins</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-val" style="color: var(--text-main);">{losses}</div>
-                    <div class="stat-label">Losses</div>
-                </div>
-                <div class="stat-card" style="border-color: rgba(96,165,250,0.2);">
-                    <div class="stat-val" style="color: #60a5fa;">{new_matches_count}</div>
-                    <div class="stat-label">New Matches</div>
-                </div>
-                <div class="stat-card" style="border-color: rgba(234,179,8,0.2);">
-                    <div class="stat-val" style="color: #eab308;">{current_rating}</div>
-                    <div class="stat-label">Current Rating</div>
-                </div>
-            </div>
-            
-            <p>
-                <em>Tip: We found {new_matches_count} new games since your last session! Let's put your piece safety skills to the test with custom puzzles from your actual matches.</em>
-            </p>
-        </section>
-
-        <!-- Progress Chart Card -->
-        <section class="card">
-            <span class="badge">Target: 1000 Rating</span>
-            <h2>Your Rating Progress Climb</h2>
-            <p>Here is your rating trajectory showing how close you are to reaching the 1000 milestone! Every game played is a step forward.</p>
-            
-            <div class="chart-container">
-                <div class="chart-header">
-                    <span class="chart-title">Rating Trajectory</span>
-                    <span class="chart-goal">Goal: 1000 🏆</span>
-                </div>
-                <svg viewBox="0 0 800 250" class="chart-svg" id="rating-chart"></svg>
-            </div>
-        </section>
-
-        <!-- Dynamic Puzzle Cards -->
         {"".join(puzzle_cards_html)}
-
-        <!-- General Training Card -->
-        <section class="card">
-            <span class="badge">Pro Chess Habits</span>
-            <h2>Keeping Your Army Defended</h2>
-            <p>
-                As you keep playing, build this quick habit before every move:
-            </p>
-            <ol>
-                <li><strong>Look at the board:</strong> Did your opponent's last move make a new threat?</li>
-                <li><strong>Do a landing scan:</strong> Is the square you are moving to safe and protected?</li>
-            </ol>
-            <p>
-                Use the **Chess.com Game Review** feature to review your games. Check out where the coach points out key defense patterns!
-            </p>
-        </section>
-
     </main>
 
     <footer>
@@ -1024,103 +941,12 @@ def main():
     </footer>
 
     <script>
-        // Rating history data injected from python
-        const ratingHistory = {rating_history_json};
-        
-        function drawChart() {{
-            const svg = document.getElementById('rating-chart');
-            if (ratingHistory.length === 0) return;
-            
-            const width = 800;
-            const height = 220;
-            
-            // Adjust padding to make room for larger Y-axis labels
-            const paddingLeft = 60;
-            const paddingRight = 40;
-            const paddingTop = 30;
-            const paddingBottom = 30;
-            
-            // Map values
-            let minRating = Math.min(...ratingHistory) - 10;
-            let maxRating = Math.max(...ratingHistory) + 10;
-            if (maxRating - minRating < 20) {{
-                maxRating = minRating + 20;
-            }}
-            
-            const pointsCount = ratingHistory.length;
-            const stepX = (width - paddingLeft - paddingRight) / Math.max(1, pointsCount - 1);
-            
-            function getY(rating) {{
-                const ratio = (rating - minRating) / (maxRating - minRating);
-                return height - paddingBottom - ratio * (height - paddingTop - paddingBottom);
-            }}
-            
-            // Generate path
-            let d = "";
-            let dotsHTML = "";
-            
-            for (let i = 0; i < pointsCount; i++) {{
-                const x = paddingLeft + i * stepX;
-                const y = getY(ratingHistory[i]);
-                
-                if (i === 0) {{
-                    d += `M ${{x}} ${{y}}`;
-                }} else {{
-                    d += ` L ${{x}} ${{y}}`;
-                }}
-                
-                // Add glowing circles on dots
-                dotsHTML += `<circle cx="${{x}}" cy="${{y}}" r="5" fill="#a78bfa" stroke="#fff" stroke-width="2">
-                    <title>Game: ${{ratingHistory[i]}}</title>
-                </circle>`;
-            }}
-            
-            svg.innerHTML = `
-                <!-- Gradient definition -->
-                <defs>
-                    <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#3b82f6" />
-                        <stop offset="100%" stop-color="#10b981" />
-                    </linearGradient>
-                    <linearGradient id="area-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3" />
-                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
-                    </linearGradient>
-                </defs>
-                
-                <!-- Floor baseline rating grid -->
-                <line x1="${{paddingLeft}}" y1="${{height - paddingBottom}}" x2="${{width - paddingRight}}" y2="${{height - paddingBottom}}" 
-                      stroke="rgba(255,255,255,0.1)" stroke-width="1" />
-                <text x="${{paddingLeft - 12}}" y="${{height - paddingBottom + 6}}" fill="#94a3b8" font-size="18" font-family="Outfit" text-anchor="end">${{minRating}}</text>
-                
-                <!-- Current rating grid -->
-                <line x1="${{paddingLeft}}" y1="${{getY(ratingHistory[pointsCount - 1])}}" x2="${{width - paddingRight}}" y2="${{getY(ratingHistory[pointsCount - 1])}}" 
-                      stroke="rgba(167, 139, 250, 0.4)" stroke-dasharray="4" stroke-width="1" />
-                <text x="${{paddingLeft - 12}}" y="${{getY(ratingHistory[pointsCount - 1]) + 6}}" fill="#a78bfa" font-weight="700" font-size="18" font-family="Outfit" text-anchor="end">${{ratingHistory[pointsCount - 1]}}</text>
-                
-                <!-- Area fill -->
-                <path d="${{d}} L ${{paddingLeft + (pointsCount-1)*stepX}} ${{height - paddingBottom}} L ${{paddingLeft}} ${{height - paddingBottom}} Z" 
-                      fill="url(#area-grad)" />
-                
-                <!-- Glowing rating line -->
-                <path d="${{d}}" fill="none" stroke="url(#line-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-                
-                <!-- Dots -->
-                ${{dotsHTML}}
-            `;
-        }}
-        
-        // Draw the chart on load
-        window.addEventListener('load', drawChart);
-
         const baseBoardStates = {{}};
         const activeMoves = {{}};
         
-        // Save base board states for ALL boards
         window.addEventListener('load', () => {{
             const boards = document.querySelectorAll('.chess-board');
             boards.forEach(board => {{
-                // Save the base state of the board for previews
                 baseBoardStates[board.id] = board.innerHTML;
             }});
         }});
@@ -1146,18 +972,15 @@ def main():
             const container = board.closest('.card');
             const buttons = container.querySelectorAll('.preview-btn');
 
-            // If it's already active, deactivate it
             if (activePreviews[puzzleId] === btn) {{
                 delete activePreviews[puzzleId];
                 btn.classList.remove('preview-active');
                 
-                // Revert to base state
                 board.innerHTML = baseBoardStates[board.id];
                 board.querySelectorAll('.square').forEach(sq => {{
                     sq.classList.remove('threat-source', 'threat-target');
                 }});
                 
-                // Re-apply active submitted move if exists
                 const active = activeMoves[puzzleId];
                 if (active) {{
                     applyMoveToBoard(board, active.fromSq, active.toSq);
@@ -1171,49 +994,39 @@ def main():
                 return;
             }}
 
-            // Otherwise, deactivate other preview buttons on this card and activate this one
             buttons.forEach(b => b.classList.remove('preview-active'));
             btn.classList.add('preview-active');
             activePreviews[puzzleId] = btn;
 
-            // Revert board to base state first and clear highlights
             board.innerHTML = baseBoardStates[board.id];
             board.querySelectorAll('.square').forEach(sq => {{
                 sq.classList.remove('threat-source', 'threat-target');
             }});
 
-            // Apply preview move
             applyMoveToBoard(board, fromSq, toSq);
         }}
 
         function checkPuzzle(puzzleId, type, optionIdx, fromSq, toSq, refutationFrom, refutationTo) {{
-            // Save as active submitted move
             activeMoves[puzzleId] = {{ fromSq, toSq, refutationFrom, refutationTo, type }};
             
             const board = document.getElementById('board-' + puzzleId);
             if (!board) return;
             
-            // Deactivate and clear any preview states
             delete activePreviews[puzzleId];
             const container = board.closest('.card');
             const buttons = container.querySelectorAll('.preview-btn');
             buttons.forEach(b => b.classList.remove('preview-active'));
             
-            // Revert to base state
             board.innerHTML = baseBoardStates[board.id];
-            
-            // Clear threat highlights
             board.querySelectorAll('.square').forEach(sq => {{
                 sq.classList.remove('threat-source', 'threat-target');
             }});
             
-            // Visually execute the player's move
             applyMoveToBoard(board, fromSq, toSq);
             
             const feedback = document.getElementById('p' + puzzleId + '-feedback');
             feedback.style.display = 'block';
             
-            // Reset styles
             for (let i = 1; i <= 3; i++) {{
                 const opt = document.getElementById('p' + puzzleId + '-o' + i);
                 if (opt) opt.className = 'quiz-option';
@@ -1226,7 +1039,6 @@ def main():
                 feedback.className = 'feedback-msg danger';
                 feedback.innerHTML = feedbackText;
                 
-                // Highlight the threat attacker and target squares
                 if (refutationFrom && refutationTo) {{
                     const fromEl = board.querySelector(`[data-square="${{refutationFrom}}"]`);
                     const toEl = board.querySelector(`[data-square="${{refutationTo}}"]`);
@@ -1246,6 +1058,27 @@ def main():
 
     with open(html_file_path, "w", encoding="utf-8") as f_out:
         f_out.write(html_content)
+
+    # Save user_stats.json
+    stats_data = {
+        "username": player_name,
+        "wins": wins,
+        "losses": losses,
+        "draws": draws,
+        "new_matches_count": new_matches_count,
+        "current_rating": current_rating,
+        "rating_history": rating_history,
+        "queen_blunders": queen_blunders,
+        "rook_blunders": rook_blunders,
+        "minor_blunders": minor_blunders
+    }
+    stats_path = os.path.join(script_dir, "user_stats.json")
+    try:
+        with open(stats_path, "w", encoding="utf-8") as sf:
+            json.dump(stats_data, sf, indent=4)
+        print(f"Successfully saved user stats to {stats_path}")
+    except Exception as e:
+        print(f"Warning: could not write to user_stats.json: {e}")
         
     # Clean up entries for current lesson or greater to avoid duplicates, then write new used puzzles
     lines_to_keep = []

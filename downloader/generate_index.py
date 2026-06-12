@@ -27,21 +27,37 @@ def parse_lesson_file(filepath):
         else:
             lesson_title = full_title
             
-    # Extract stats using regex
-    # Wins: <div class="stat-val win-stat">(\d+)</div>
-    wins_match = re.search(r'<div class="stat-val win-stat">(\d+)</div>', content)
-    wins = int(wins_match.group(1)) if wins_match else 0
+    import json
     
-    # Losses: <div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Losses</div>
-    losses_match = re.search(r'<div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Losses</div>', content)
-    losses = int(losses_match.group(1)) if losses_match else 0
-    
-    # Rating: <div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Current Rating</div>
-    rating_match = re.search(r'<div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Current Rating</div>', content)
-    rating = int(rating_match.group(1)) if rating_match else 300
-    
-    # Count challenges (number of boards)
-    challenges = len(re.findall(r'class="chess-board"', content))
+    # Try parsing via metadata comment first
+    meta_match = re.search(r'<!-- LESSON_METADATA:\s*({.*?})\s*-->', content)
+    if meta_match:
+        try:
+            meta = json.loads(meta_match.group(1))
+            wins = meta.get("wins", 0)
+            losses = meta.get("losses", 0)
+            rating = meta.get("rating", 300)
+            challenges = meta.get("challenges", 0)
+        except Exception as e:
+            print(f"Warning: failed to parse metadata json in {filename}: {e}")
+            meta_match = None
+            
+    if not meta_match:
+        # Extract stats using regex
+        # Wins: <div class="stat-val win-stat">(\d+)</div>
+        wins_match = re.search(r'<div class="stat-val win-stat">(\d+)</div>', content)
+        wins = int(wins_match.group(1)) if wins_match else 0
+        
+        # Losses: <div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Losses</div>
+        losses_match = re.search(r'<div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Losses</div>', content)
+        losses = int(losses_match.group(1)) if losses_match else 0
+        
+        # Rating: <div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Current Rating</div>
+        rating_match = re.search(r'<div class="stat-val"[^>]*>(\d+)</div>\s*<div class="stat-label">Current Rating</div>', content)
+        rating = int(rating_match.group(1)) if rating_match else 300
+        
+        # Count challenges (number of boards)
+        challenges = len(re.findall(r'class="chess-board"', content))
     
     # File compile date (modification time)
     mtime = os.path.getmtime(filepath)
@@ -63,8 +79,9 @@ def generate_index_html(lessons, output_path):
     """
     Generates a premium index.html linking to all lessons.
     """
-    lessons_html = []
+    import json
     
+    lessons_html = []
     for lesson in lessons:
         lessons_html.append(f"""
             <!-- Lesson Card {lesson['num']} -->
@@ -104,13 +121,39 @@ def generate_index_html(lessons, output_path):
     latest_rating = lessons[0]['rating'] if lessons else 300
     total_puzzles = sum(l['challenges'] for l in lessons)
     
+    # Load user_stats.json
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    stats_path = os.path.join(script_dir, "user_stats.json")
+    username = "darkkkkkkk0"
+    wins = 0
+    losses = 0
+    draws = 0
+    new_matches_count = 0
+    rating_history = [latest_rating]
+    
+    if os.path.exists(stats_path):
+        try:
+            with open(stats_path, "r", encoding="utf-8") as sf:
+                stats = json.load(sf)
+                username = stats.get("username", username)
+                wins = stats.get("wins", wins)
+                losses = stats.get("losses", losses)
+                draws = stats.get("draws", draws)
+                new_matches_count = stats.get("new_matches_count", new_matches_count)
+                latest_rating = stats.get("current_rating", latest_rating)
+                rating_history = stats.get("rating_history", rating_history)
+        except Exception as e:
+            print(f"Warning: could not read user_stats.json: {e}")
+            
+    rating_history_json = json.dumps(rating_history)
+    
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chess Mastery Portal | darkkkkkkk0</title>
-    <meta name="description" content="Personalized chess training portal and interactive blunder review dashboard for darkkkkkkk0.">
+    <title>Chess Mastery Portal | {username}</title>
+    <meta name="description" content="Personalized chess training portal and interactive blunder review dashboard for {username}.">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {{
@@ -135,7 +178,7 @@ def generate_index_html(lessons, output_path):
 
         header {{
             background: linear-gradient(135deg, #1e1b4b, #1d4ed8);
-            padding: 4rem 2rem;
+            padding: 1.5rem 1rem;
             text-align: center;
             border-bottom: 4px solid var(--accent-primary);
             position: relative;
@@ -151,7 +194,7 @@ def generate_index_html(lessons, output_path):
             height: 200px;
             background: var(--accent-secondary);
             filter: blur(120px);
-            opacity: 0.3;
+            opacity: 0.2;
             pointer-events: none;
         }}
 
@@ -164,7 +207,7 @@ def generate_index_html(lessons, output_path):
             height: 200px;
             background: var(--accent-primary);
             filter: blur(120px);
-            opacity: 0.3;
+            opacity: 0.2;
             pointer-events: none;
         }}
 
@@ -172,87 +215,97 @@ def generate_index_html(lessons, output_path):
             font-family: 'Outfit', sans-serif;
             text-transform: uppercase;
             font-weight: 800;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             letter-spacing: 0.15rem;
             color: #60a5fa;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
             display: inline-block;
         }}
 
         h1 {{
             font-family: 'Outfit', sans-serif;
-            font-size: 3rem;
+            font-size: 2rem;
             font-weight: 800;
-            margin: 0.5rem 0;
+            margin: 0.25rem 0;
             background: linear-gradient(to right, #60a5fa, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }}
 
         .subtitle {{
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: var(--text-muted);
             max-width: 600px;
-            margin: 0.5rem auto 0 auto;
+            margin: 0.25rem auto 0 auto;
         }}
 
         main {{
             max-width: 1000px;
-            margin: 3rem auto;
-            padding: 0 1.5rem;
+            margin: 2rem auto;
+            padding: 0 1rem;
         }}
 
-        .summary-banner {{
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+        /* Consolidated dense dashboard */
+        .dashboard-banner {{
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 16px;
-            padding: 2.5rem;
-            margin-bottom: 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 2rem;
+            padding: 1.5rem;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         }}
 
-        .summary-text {{
-            flex: 1;
-            min-width: 280px;
+        @media (min-width: 768px) {{
+            .dashboard-banner {{
+                grid-template-columns: 2fr 3fr;
+                padding: 2rem;
+            }}
         }}
 
-        .summary-title {{
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0 0 0.5rem 0;
-            color: #e2e8f0;
-        }}
-
-        .summary-desc {{
-            color: var(--text-muted);
-            margin: 0;
-        }}
-
-        .summary-stats {{
+        .stats-panel {{
             display: flex;
-            gap: 2rem;
+            flex-direction: column;
+            justify-content: center;
         }}
 
-        .summary-stat-box {{
+        .panel-title {{
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            color: #e2e8f0;
+            border-left: 4px solid var(--accent-primary);
+            padding-left: 0.5rem;
+        }}
+
+        .stats-grid {{
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }}
+
+        .stat-box {{
+            background: rgba(15, 23, 42, 0.4);
+            padding: 1rem;
+            border-radius: 12px;
             text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.03);
         }}
 
-        .summary-stat-val {{
-            font-size: 2.5rem;
+        .stat-val {{
+            font-size: 1.8rem;
             font-weight: 800;
             font-family: 'Outfit', sans-serif;
             color: var(--accent-primary);
-            line-height: 1;
+            display: block;
+            line-height: 1.2;
         }}
 
-        .summary-stat-lbl {{
-            font-size: 0.8rem;
+        .stat-lbl {{
+            font-size: 0.7rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05rem;
@@ -260,17 +313,54 @@ def generate_index_html(lessons, output_path):
             display: block;
         }}
 
+        .chart-panel {{
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            border-radius: 12px;
+        }}
+
+        .chart-header {{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }}
+
+        .chart-title {{
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #60a5fa;
+        }}
+
+        .chart-goal {{
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            color: #eab308;
+            font-size: 0.8rem;
+        }}
+
+        .chart-svg {{
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }}
+
         .lessons-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }}
 
         .lesson-card {{
             background-color: var(--card-bg);
             border-radius: 16px;
-            padding: 2rem;
+            padding: 1.5rem;
             border: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
@@ -289,48 +379,48 @@ def generate_index_html(lessons, output_path):
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
         }}
 
         .lesson-badge {{
             background: var(--accent-primary);
             color: #fff;
-            padding: 0.25rem 0.6rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 9999px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05rem;
         }}
 
         .lesson-date {{
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
         }}
 
         .lesson-card h3 {{
             font-family: 'Outfit', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             font-weight: 700;
-            margin: 0 0 1rem 0;
+            margin: 0 0 0.75rem 0;
             color: #e2e8f0;
         }}
 
         .lesson-card p {{
             color: var(--text-muted);
-            font-size: 0.95rem;
-            margin: 0 0 1.5rem 0;
+            font-size: 0.9rem;
+            margin: 0 0 1.25rem 0;
             flex-grow: 1;
         }}
 
         .lesson-stats {{
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
+            gap: 0.25rem;
             background: rgba(15, 23, 42, 0.4);
-            padding: 0.75rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.25rem;
             border: 1px solid rgba(255, 255, 255, 0.02);
         }}
 
@@ -341,13 +431,13 @@ def generate_index_html(lessons, output_path):
         .l-stat-val {{
             display: block;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-family: 'Outfit', sans-serif;
         }}
 
         .l-stat-lbl {{
             display: block;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text-muted);
             text-transform: uppercase;
         }}
@@ -356,7 +446,7 @@ def generate_index_html(lessons, output_path):
             background: linear-gradient(135deg, var(--accent-primary), #6366f1);
             color: white;
             text-decoration: none;
-            padding: 0.8rem 1.5rem;
+            padding: 0.75rem 1.25rem;
             border-radius: 8px;
             font-weight: 600;
             text-align: center;
@@ -381,11 +471,11 @@ def generate_index_html(lessons, output_path):
 
         footer {{
             text-align: center;
-            padding: 3rem 0;
+            padding: 2.5rem 0;
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
-            margin-top: 5rem;
+            margin-top: 4rem;
         }}
     </style>
 </head>
@@ -394,34 +484,45 @@ def generate_index_html(lessons, output_path):
     <header>
         <div class="header-tag">Chess Training Portal</div>
         <h1>Chess Mastery Portal</h1>
-        <p class="subtitle">Personalized Interactive Lessons & Blunder Reviews for darkkkkkkk0</p>
+        <p class="subtitle">Interactive game reviews and safety practice generated dynamically from your Chess.com matches</p>
     </header>
 
     <main>
         
-        <!-- Summary Dashboard -->
-        <section class="summary-banner">
-            <div class="summary-text">
-                <h2 class="summary-title">Your Progress Status</h2>
-                <p class="summary-desc">Analyzing your chess.com matches dynamically to locate blunder profiles. Run the update loop daily to import and study your latest games!</p>
+        <!-- Consolidated Dashboard -->
+        <section class="dashboard-banner">
+            <div class="stats-panel">
+                <h2 class="panel-title">Progress Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <span class="stat-val">{len(lessons)}</span>
+                        <span class="stat-lbl">Lessons</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-val" style="color: var(--accent-secondary);">{total_puzzles}</span>
+                        <span class="stat-lbl">Puzzles</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-val" style="color: var(--success);">{wins}W - {losses}L</span>
+                        <span class="stat-lbl">Recent Record</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-val" style="color: #eab308;">{latest_rating}</span>
+                        <span class="stat-lbl">Rating</span>
+                    </div>
+                </div>
             </div>
-            <div class="summary-stats">
-                <div class="summary-stat-box">
-                    <span class="summary-stat-val">{len(lessons)}</span>
-                    <span class="summary-stat-lbl">Total Lessons</span>
+            
+            <div class="chart-panel">
+                <div class="chart-header">
+                    <span class="chart-title">Rating Trajectory</span>
+                    <span class="chart-goal">Goal: 1000 🏆</span>
                 </div>
-                <div class="summary-stat-box">
-                    <span class="summary-stat-val" style="color: var(--accent-secondary);">{total_puzzles}</span>
-                    <span class="summary-stat-lbl">Active Puzzles</span>
-                </div>
-                <div class="summary-stat-box">
-                    <span class="summary-stat-val" style="color: #eab308;">{latest_rating}</span>
-                    <span class="summary-stat-lbl">Latest Rating</span>
-                </div>
+                <svg viewBox="0 0 800 220" class="chart-svg" id="rating-chart"></svg>
             </div>
         </section>
 
-        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin: 0 0 1rem 0; border-left: 5px solid var(--accent-primary); padding-left: 0.75rem;">Your Lessons List</h2>
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; margin: 0 0 1rem 0; border-left: 5px solid var(--accent-primary); padding-left: 0.75rem;">Your Lessons List</h2>
         
         <div class="lessons-grid">
             {"".join(lessons_html)}
@@ -430,8 +531,86 @@ def generate_index_html(lessons, output_path):
     </main>
 
     <footer>
-        <p>Chess Mastery Journey for darkkkkkkk0 • Made with 💙</p>
+        <p>Chess Mastery Journey for {username} • Made with 💙</p>
     </footer>
+
+    <script>
+        const ratingHistory = {rating_history_json};
+        
+        function drawChart() {{
+            const svg = document.getElementById('rating-chart');
+            if (!svg || ratingHistory.length === 0) return;
+            
+            const width = 800;
+            const height = 220;
+            const paddingLeft = 60;
+            const paddingRight = 40;
+            const paddingTop = 30;
+            const paddingBottom = 30;
+            
+            let minRating = Math.min(...ratingHistory) - 10;
+            let maxRating = Math.max(...ratingHistory) + 10;
+            if (maxRating - minRating < 20) {{
+                maxRating = minRating + 20;
+            }}
+            
+            const pointsCount = ratingHistory.length;
+            const stepX = (width - paddingLeft - paddingRight) / Math.max(1, pointsCount - 1);
+            
+            function getY(rating) {{
+                const ratio = (rating - minRating) / (maxRating - minRating);
+                return height - paddingBottom - ratio * (height - paddingTop - paddingBottom);
+            }}
+            
+            let d = "";
+            let dotsHTML = "";
+            
+            for (let i = 0; i < pointsCount; i++) {{
+                const x = paddingLeft + i * stepX;
+                const y = getY(ratingHistory[i]);
+                
+                if (i === 0) {{
+                    d += `M ${{x}} ${{y}}`;
+                }} else {{
+                    d += ` L ${{x}} ${{y}}`;
+                }}
+                
+                dotsHTML += `<circle cx="${{x}}" cy="${{y}}" r="5" fill="#a78bfa" stroke="#fff" stroke-width="2">
+                    <title>Game: ${{ratingHistory[i]}}</title>
+                </circle>`;
+            }}
+            
+            svg.innerHTML = `
+                <defs>
+                    <linearGradient id="line-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#3b82f6" />
+                        <stop offset="100%" stop-color="#10b981" />
+                    </linearGradient>
+                    <linearGradient id="area-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3" />
+                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.0" />
+                    </linearGradient>
+                </defs>
+                
+                <line x1="${{paddingLeft}}" y1="${{height - paddingBottom}}" x2="${{width - paddingRight}}" y2="${{height - paddingBottom}}" 
+                      stroke="rgba(255,255,255,0.1)" stroke-width="1" />
+                <text x="${{paddingLeft - 12}}" y="${{height - paddingBottom + 6}}" fill="#94a3b8" font-size="18" font-family="Outfit" text-anchor="end">${{minRating}}</text>
+                
+                <line x1="${{paddingLeft}}" y1="${{getY(ratingHistory[pointsCount - 1])}}" x2="${{width - paddingRight}}" y2="${{getY(ratingHistory[pointsCount - 1])}}" 
+                      stroke="rgba(167, 139, 250, 0.4)" stroke-dasharray="4" stroke-width="1" />
+                <text x="${{paddingLeft - 12}}" y="${{getY(ratingHistory[pointsCount - 1]) + 6}}" fill="#a78bfa" font-weight="700" font-size="18" font-family="Outfit" text-anchor="end">${{ratingHistory[pointsCount - 1]}}</text>
+                
+                <path d="${{d}} L ${{paddingLeft + (pointsCount-1)*stepX}} ${{height - paddingBottom}} L ${{paddingLeft}} ${{height - paddingBottom}} Z" 
+                      fill="url(#area-grad)" />
+                
+                <path d="${{d}}" fill="none" stroke="url(#line-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                
+                ${{dotsHTML}}
+            `;
+        }}
+        
+        window.addEventListener('load', drawChart);
+    </script>
 
 </body>
 </html>
