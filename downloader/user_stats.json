@@ -3,12 +3,9 @@
     "wins": 12,
     "losses": 8,
     "draws": 0,
-    "new_matches_count": 0,
-    "current_rating": 347,
+    "new_matches_count": 3,
+    "current_rating": 354,
     "rating_history": [
-        198,
-        157,
-        149,
         142,
         150,
         283,
@@ -35,7 +32,10 @@
         323,
         331,
         339,
-        347
+        347,
+        354,
+        362,
+        354
     ],
     "queen_blunders": 1,
     "rook_blunders": 5,

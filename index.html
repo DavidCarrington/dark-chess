@@ -346,11 +346,11 @@
                 <h2 class="panel-title">Progress Overview</h2>
                 <div class="stats-grid">
                     <div class="stat-box">
-                        <span class="stat-val">2</span>
+                        <span class="stat-val">3</span>
                         <span class="stat-lbl">Lessons</span>
                     </div>
                     <div class="stat-box">
-                        <span class="stat-val" style="color: var(--accent-secondary);">55</span>
+                        <span class="stat-val" style="color: var(--accent-secondary);">65</span>
                         <span class="stat-lbl">Puzzles</span>
                     </div>
                     <div class="stat-box">
@@ -358,7 +358,7 @@
                         <span class="stat-lbl">Recent Record</span>
                     </div>
                     <div class="stat-box">
-                        <span class="stat-val" style="color: #eab308;">347</span>
+                        <span class="stat-val" style="color: #eab308;">354</span>
                         <span class="stat-lbl">Rating</span>
                     </div>
                 </div>
@@ -377,6 +377,39 @@
         
         <div class="lessons-grid">
             
+            <!-- Lesson Card 3 -->
+            <div class="lesson-card">
+                <div class="lesson-header">
+                    <span class="lesson-badge">Lesson 3</span>
+                    <span class="lesson-date">Updated: 2026-06-13 17:25</span>
+                </div>
+                <h3>Lesson 3: Personalized Game Review</h3>
+                <p>Personalized blunder scanning and safety analysis generated from your recent games on Chess.com.</p>
+                
+                <div class="lesson-stats">
+                    <div class="l-stat">
+                        <span class="l-stat-val">10</span>
+                        <span class="l-stat-lbl">Puzzles</span>
+                    </div>
+                    <div class="l-stat">
+                        <span class="l-stat-val" style="color: var(--success);">12</span>
+                        <span class="l-stat-lbl">Wins</span>
+                    </div>
+                    <div class="l-stat">
+                        <span class="l-stat-val" style="color: #ef4444;">8</span>
+                        <span class="l-stat-lbl">Losses</span>
+                    </div>
+                    <div class="l-stat">
+                        <span class="l-stat-val" style="color: #eab308;">354</span>
+                        <span class="l-stat-lbl">Rating</span>
+                    </div>
+                </div>
+                
+                <a href="lessons/0003-recent-games-review.html" class="btn-primary" id="btn-lesson-3">
+                    Start Practice <span>→</span>
+                </a>
+            </div>
+        
             <!-- Lesson Card 2 -->
             <div class="lesson-card">
                 <div class="lesson-header">
@@ -452,7 +485,7 @@
     </footer>
 
     <script>
-        const ratingHistory = [198, 157, 149, 142, 150, 283, 158, 291, 299, 299, 299, 307, 315, 323, 314, 150, 322, 330, 338, 330, 322, 314, 306, 314, 323, 331, 323, 331, 339, 347];
+        const ratingHistory = [142, 150, 283, 158, 291, 299, 299, 299, 307, 315, 323, 314, 150, 322, 330, 338, 330, 322, 314, 306, 314, 323, 331, 323, 331, 339, 347, 354, 362, 354];
         
         function drawChart() {
             const svg = document.getElementById('rating-chart');
