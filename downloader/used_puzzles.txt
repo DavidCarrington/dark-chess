@@ -118,3 +118,13 @@
 0003_https://www.chess.com/game/live/169766787010_d4+
 0003_https://www.chess.com/game/live/169766787010_Nb5+
 0003_https://www.chess.com/game/live/169766787010_Qxa7
+0004_https://www.chess.com/game/live/170154116900_Bc5
+0004_https://www.chess.com/game/live/170155519936_Qh5
+0004_https://www.chess.com/game/live/170169013428_Qf5
+0004_https://www.chess.com/game/live/170336834332_O-O-O
+0004_https://www.chess.com/game/live/170169013428_Qh1+
+0004_https://www.chess.com/game/live/170177244158_Qxe7
+0004_https://www.chess.com/game/live/170177244158_Kc2
+0004_https://www.chess.com/game/live/170342065960_Qb1+
+0004_https://www.chess.com/game/live/170177244158_a5
+0004_https://www.chess.com/game/live/170336834332_Qd5+
