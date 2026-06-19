@@ -1,15 +1,11 @@
 {
     "username": "darkkkkkkk0",
-    "wins": 13,
-    "losses": 5,
+    "wins": 10,
+    "losses": 8,
     "draws": 2,
-    "new_matches_count": 15,
-    "current_rating": 393,
+    "new_matches_count": 4,
+    "current_rating": 377,
     "rating_history": [
-        338,
-        330,
-        322,
-        314,
         306,
         314,
         323,
@@ -35,9 +31,13 @@
         386,
         378,
         386,
-        393
+        393,
+        401,
+        393,
+        385,
+        377
     ],
-    "queen_blunders": 5,
-    "rook_blunders": 4,
-    "minor_blunders": 13
+    "queen_blunders": 7,
+    "rook_blunders": 6,
+    "minor_blunders": 18
 }
